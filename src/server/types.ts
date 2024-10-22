@@ -1,0 +1,356 @@
+import { LineString } from "geojson";
+
+export enum VehicleType {
+	Railway = 100,
+	Coach = 200,
+	Metro = 400,
+	Monorail = 405,
+	Bus = 700,
+	Trolleybus = 800,
+	Tram = 900,
+	Water = 1000,
+	Air = 1100,
+	Ferry = 1200,
+	Aerial = 1300,
+	Funicular = 1400,
+	Taxi = 1500,
+	Other = 1700,
+}
+
+export type LatLon = [number, number];
+export type TimeInterval =
+	| [undefined, number]
+	| [number, undefined]
+	| [number, number];
+
+export type RawGtfs = {
+	/** parsed contents of routes.txt */
+	routes: {
+		/** unique identifier for this route */
+		id: string;
+		/** user-facing name of this route */
+		name: string;
+		/** vehicle type used on this route */
+		type: VehicleType;
+	}[];
+	/** parsed contents of trips.txt */
+	trips: {
+		/** unique identifier of this trip */
+		id: string;
+		/** identifier of the route this trip belongs to */
+		route: string;
+		/** headsign used on this trip (usually the destination stop name) */
+		headsign: string;
+		/** identifier of the shape for this trip */
+		shape?: string;
+	}[];
+	/** parsed contents of stops.txt */
+	stops: {
+		/** unique identifier of this stop */
+		id: string;
+		/** user-facing name of this stop */
+		name: string;
+		/** latitude in degrees of this stop */
+		lat: number;
+		/** longitude in degrees of this stop */
+		lon: number;
+	}[];
+	/** parsed contents of stop_times.txt */
+	stop_times: {
+		/** identifier of the trip this stop time describes */
+		trip: string;
+		/** identifier of the stop this stop time applies to */
+		stop: string;
+		/** sequence number of this stop in the trip */
+		sequence: number;
+		/** arrival time */
+		arrival: string;
+		/** departure time */
+		departure: string;
+	}[];
+	/** parsed contents of shapes.txt, if present */
+	shapes?: {
+		/** identifier of the shape this point belongs to */
+		id: string;
+		/** latitude in degrees of this shape point */
+		lat: number;
+		/** longitude in degrees of this shape point */
+		lon: number;
+		/** sequence number of this shape point within its shape */
+		sequence: number;
+	}[];
+};
+
+export type RawRealtime = {
+	/** parsed vehicle positions */
+	positions?: {
+		/** unique identifier of this vehicle */
+		id: string;
+		/** user-facing identifier of this vehicle */
+		name: string;
+		/** identifier of the trip this vehicle is serving, if known */
+		trip: string | undefined;
+		/** timestamp of this position measurement */
+		ts: number;
+		/** latitude in degrees of the vehicle */
+		lat: number;
+		/** longitude in degrees of the vehicle */
+		lon: number;
+		/** heading/bearing in degrees of the vehicle, if known */
+		hdg: number | undefined;
+	}[];
+	/** parsed trip updates */
+	trip_updates?: {
+		/** descriptor of the trip this update applies to */
+		trip: {
+			/** identifier of the trip */
+			trip?: string;
+			/** identifier of the route */
+			route?: string;
+			/** start time of the trip */
+			start_time?: string;
+			/** start date of the trip */
+			start_date?: string;
+		};
+		/** vehicle identifier that this update applies to, if known */
+		vehicle?: string;
+		/** delay in seconds compared to schedule */
+		delay: number;
+	}[];
+	/** parsed alerts */
+	alerts?: {
+		/** target descriptors of this alert */
+		targets: {
+			/** route identifier this alert applies to, if any */
+			route?: string;
+			/** route vehicle type this alert applies to, if any */
+			route_type?: number;
+			/** trip identifier this alert applies to, if any */
+			trip?: string;
+			/** stop identifier this alert applies to, if any */
+			stop?: string;
+		}[];
+		/** start time of the alert's active time, if any */
+		start?: number;
+		/** end time of the alert's active time, if any */
+		end?: number;
+		/** brief information text about this alert */
+		info: string;
+		/** detailed information text about this alert */
+		details: string;
+	}[];
+};
+
+/** an alert */
+export type Alert = {
+	/** the time during which this alert is active */
+	time?: TimeInterval;
+	/** brief informational text about this alert */
+	info: string;
+	/** detailed informational text about this alert */
+	details: string;
+};
+
+/** a stop */
+export type Stop = {
+	/** unique identifier of this stop */
+	id: string;
+	/** user-facing name of this stop */
+	name: string;
+	/** latitude of this stop */
+	lat: number;
+	/** longitude of this stop */
+	lon: number;
+	/** lines, which stop at this stop */
+	lines: {
+		/** identifier of the line */
+		id: string;
+		/** user-facing name of the line */
+		name: string;
+		/** headsign of the line */
+		headsign: string;
+	}[];
+};
+
+/** a vehicle */
+export type Vehicle = {
+	/** unique identifier of the vehicle */
+	id: string;
+	/** user-facing name of the vehicle */
+	name: string;
+	/** type of the vehicle, if known */
+	type?: VehicleType;
+	/** latitude of the vehicle */
+	lat: number;
+	/** longitude of the vehicle */
+	lon: number;
+	/** heading/bearing of the vehicle */
+	hdg: number;
+	/** line identifier of the vehicle */
+	line: string;
+	/** user-facing name of the line */
+	line_name: string;
+	/** headsign of the vehicle/line */
+	headsign: string;
+	/** delay compared to schedule of the vehicle, if known */
+	delay?: number;
+};
+
+/** a line */
+export type Line = {
+	/** unique identifier of the line */
+	id: string;
+	/** user-facing name of the line */
+	name: string;
+	/** headsign of the line */
+	headsign: string;
+	/** stops of the line, in service order */
+	stops: {
+		/** unique identifier of the stop */
+		id: string;
+		/** user-facing name of the stop */
+		name: string;
+		/** latitude of the stop */
+		lat: number;
+		/** longitude of the stop */
+		lon: number;
+	}[];
+	/** vehicle type used on the line */
+	type: VehicleType;
+	/** identifier(s) of the path(s) of the line, if known */
+	shape?: string[];
+};
+
+/** information about transit lines */
+export type LinesInfo = {
+	/** transit lines */
+	lines: Line[];
+	/** transit line shapes */
+	shapes: {
+		[shape in string]?: LineString;
+	};
+	/** mapping from gtfs trip ids to line ids */
+	trip_mappings: { [key in string]?: string };
+};
+
+/** a single scheduled stop at a transit stop */
+export type StopSchedule = {
+	/** transit line stopping at this stop */
+	line: string;
+	/** the line's name */
+	name: string;
+	/** the line's headsign */
+	headsign: string;
+	/** arrival time */
+	arrival: string;
+	/** departure time */
+	departure: string;
+	/** delay in seconds compared to schedule, if known */
+	delay?: number;
+	/** vehicle identifier serving this stop, if known */
+	vehicle?: string;
+};
+
+/** arrival and departure times of stops */
+export type StopSchedules = {
+	[stop in string]?: StopSchedule[];
+};
+
+/** a single scheduled stop by a transit line */
+export type LineSchedule = {
+	/** stop identifier */
+	stop: string;
+	/** user-facing stop name */
+	stop_name: string;
+	/** arrival time */
+	arrival: string;
+	/** departure time */
+	departure: string;
+	/** delay in seconds compared to schedule, if known */
+	delay?: number;
+	/** transit vehicle serving this stop, if known */
+	vehicle?: string;
+};
+
+/** arrival and departure times of lines */
+export type LineSchedules = {
+	[line in string]?: LineSchedule[];
+};
+
+/** information about a transit system */
+export type SystemInfo = {
+	/** bounding box around (most of) the system, used for initial map position */
+	location: [LatLon, LatLon];
+	/** raw gtfs data sources and their data */
+	raw_gtfs: {
+		[source in string]?: {
+			/** unique identifier of this data source within the transit system
+			 *
+			 * may be left empty if there is either only one gtfs source in
+			 * this transit system or all of this transit system's gtfs sources
+			 * should be treated as though they were one source (and ids should
+			 * always be resolved in all sources, but then ALL source ids in
+			 * this transit system must be empty)
+			 */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+			/** cached data */
+			data?: Promise<RawGtfs>;
+		};
+	};
+	/** raw gtfs realtime data sources and their data */
+	raw_realtime: {
+		[source in string]?: {
+			/** identifier of the gtfs source that ids within this data should be resolved in */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+			/** cached data */
+			data?: Promise<RawRealtime>;
+		};
+	};
+	/** cached alerts */
+	alerts: Promise<Alert[]> | undefined;
+	/** cached vehicles */
+	vehicles: Promise<Vehicle[]> | undefined;
+	/** cached stops */
+	stops: Promise<Stop[]> | undefined;
+	/** cached lines */
+	lines: Promise<LinesInfo> | undefined;
+	/** cached stop schedules */
+	stop_schedules: Promise<StopSchedules> | undefined;
+	/** cached line schedules */
+	line_schedules: Promise<LineSchedules> | undefined;
+};
+
+/** configuration of a transit system, subset of `SystemInfo` */
+export type SystemConfig = {
+	/** bounding box around (most of) the system, used for initial map position */
+	location: [LatLon, LatLon];
+	/** raw gtfs data sources and their data */
+	raw_gtfs: {
+		[source in string]?: {
+			/** unique identifier of this data source within the transit system
+			 *
+			 * may be left empty if there is either only one gtfs source in
+			 * this transit system or all of this transit system's gtfs sources
+			 * should be treated as though they were one source (and ids should
+			 * always be resolved in all sources, but then ALL source ids in
+			 * this transit system must be empty)
+			 */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+		};
+	};
+	/** raw gtfs realtime data sources and their data */
+	raw_realtime: {
+		[source in string]?: {
+			/** identifier of the gtfs source that ids within this data should be resolved in */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+		};
+	};
+};
