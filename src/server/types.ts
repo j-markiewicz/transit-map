@@ -1,4 +1,5 @@
 import { LineString } from "geojson";
+import { Temporal } from "temporal-polyfill";
 
 export enum VehicleType {
 	Railway = 100,
@@ -17,6 +18,36 @@ export enum VehicleType {
 	Other = 1700,
 }
 
+export class Lazy<T> {
+	private fn: (() => T) | undefined;
+	private val: T | typeof this.nothing;
+	private nothing: symbol;
+
+	constructor(fn: () => T) {
+		this.fn = fn;
+		this.nothing = Symbol("no value");
+		this.val = this.nothing;
+	}
+
+	public get(): T {
+		if (this.val !== this.nothing) {
+			return this.val as T;
+		}
+
+		if (this.fn === undefined) {
+			throw new Error("Lazy has no value and no function");
+		}
+
+		this.val = this.fn();
+		this.fn = undefined;
+		return this.val;
+	}
+
+	public toString(): string {
+		return `${this.get()}`;
+	}
+}
+
 export type LatLon = [number, number];
 export type TimeInterval =
 	| [undefined, number]
@@ -24,6 +55,8 @@ export type TimeInterval =
 	| [number, number];
 
 export type RawGtfs = {
+	/** timezone used in this dataset, parsed from agency.txt */
+	timezone: string;
 	/** parsed contents of routes.txt */
 	routes: {
 		/** unique identifier for this route */
@@ -39,6 +72,8 @@ export type RawGtfs = {
 		id: string;
 		/** identifier of the route this trip belongs to */
 		route: string;
+		/** identifier of the service this trip is scheduled under */
+		service: string;
 		/** headsign used on this trip (usually the destination stop name) */
 		headsign: string;
 		/** identifier of the shape for this trip */
@@ -64,9 +99,9 @@ export type RawGtfs = {
 		/** sequence number of this stop in the trip */
 		sequence: number;
 		/** arrival time */
-		arrival: string;
+		arrival: string | undefined;
 		/** departure time */
-		departure: string;
+		departure: string | undefined;
 	}[];
 	/** parsed contents of shapes.txt, if present */
 	shapes?: {
@@ -78,6 +113,38 @@ export type RawGtfs = {
 		lon: number;
 		/** sequence number of this shape point within its shape */
 		sequence: number;
+	}[];
+	/** parsed contents of calendar.txt, if present */
+	calendar?: {
+		/** identifier of the service this entry describes */
+		id: string;
+		/** whether this service operates on mondays */
+		monday: boolean;
+		/** whether this service operates on tuesdays */
+		tuesday: boolean;
+		/** whether this service operates on wednesdays */
+		wednesday: boolean;
+		/** whether this service operates on thursdays */
+		thursday: boolean;
+		/** whether this service operates on fridays */
+		friday: boolean;
+		/** whether this service operates on saturdays */
+		saturday: boolean;
+		/** whether this service operates on sundays */
+		sunday: boolean;
+		/** first date of this service */
+		start_date: string;
+		/** last date of this service */
+		end_date: string;
+	}[];
+	/** parsed contents of calendar_dates.txt, if present */
+	calendar_dates?: {
+		/** id of the service this entry applies to */
+		id: string;
+		/** date on which this entry applies */
+		date: string;
+		/** whether service was added or removed */
+		type: "added" | "removed";
 	}[];
 };
 
@@ -196,7 +263,7 @@ export type Vehicle = {
 	delay?: number;
 };
 
-/** a line */
+/** a transit line */
 export type Line = {
 	/** unique identifier of the line */
 	id: string;
@@ -229,8 +296,8 @@ export type LinesInfo = {
 	shapes: {
 		[shape in string]?: LineString;
 	};
-	/** mapping from gtfs trip ids to line ids */
-	trip_mappings: { [key in string]?: string };
+	/** mapping from gtfs trip ids to line and service ids */
+	trip_mappings: { [key in string]?: { line: string; service: string } };
 };
 
 /** a single scheduled stop at a transit stop */
@@ -253,7 +320,7 @@ export type StopSchedule = {
 
 /** arrival and departure times of stops */
 export type StopSchedules = {
-	[stop in string]?: StopSchedule[];
+	[stop in string]?: Lazy<StopSchedule[]>;
 };
 
 /** a single scheduled stop by a transit line */
@@ -274,7 +341,7 @@ export type LineSchedule = {
 
 /** arrival and departure times of lines */
 export type LineSchedules = {
-	[line in string]?: LineSchedule[];
+	[line in string]?: Lazy<LineSchedule[]>;
 };
 
 /** information about a transit system */
@@ -322,6 +389,13 @@ export type SystemInfo = {
 	stop_schedules: Promise<StopSchedules> | undefined;
 	/** cached line schedules */
 	line_schedules: Promise<LineSchedules> | undefined;
+	/** cached service schedules */
+	services:
+		| Promise<{
+				/** dates that a service operates on */
+				[service in string]?: Temporal.ZonedDateTime[];
+		  }>
+		| undefined;
 };
 
 /** configuration of a transit system, subset of `SystemInfo` */

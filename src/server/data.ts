@@ -2,8 +2,10 @@ import { LineString } from "geojson";
 import ms from "ms";
 import { createHash } from "crypto";
 import { Worker } from "worker_threads";
+import { Temporal } from "temporal-polyfill";
 
 import {
+	Lazy,
 	VehicleType,
 	TimeInterval,
 	RawGtfs,
@@ -111,13 +113,13 @@ export default class Data {
 		const stop_schedules = this.systems[system]?.stop_schedules;
 
 		if (stop_schedules !== undefined) {
-			return stop_schedules.then((s) => s[stop]);
+			return stop_schedules.then((s) => s[stop]?.get());
 		} else if (this.systems[system] === undefined) {
 			return undefined;
 		}
 
 		this.systems[system].stop_schedules = this.compute_stop_schedules(system);
-		return this.systems[system]?.stop_schedules?.then((s) => s[stop]);
+		return this.systems[system]?.stop_schedules?.then((s) => s[stop]?.get());
 	}
 
 	public get_line_schedule(
@@ -127,13 +129,13 @@ export default class Data {
 		const line_schedules = this.systems[system]?.line_schedules;
 
 		if (line_schedules !== undefined) {
-			return line_schedules.then((s) => s[line]);
+			return line_schedules.then((s) => s[line]?.get());
 		} else if (this.systems[system] === undefined) {
 			return undefined;
 		}
 
 		this.systems[system].line_schedules = this.compute_line_schedules(system);
-		return this.systems[system]?.line_schedules?.then((s) => s[line]);
+		return this.systems[system]?.line_schedules?.then((s) => s[line]?.get());
 	}
 
 	public get_shape(
@@ -154,7 +156,7 @@ export default class Data {
 
 	private get_trip_mappings(
 		system: string
-	): Promise<{ [key in string]?: string }> {
+	): Promise<LinesInfo["trip_mappings"]> {
 		const lines = this.systems[system]?.lines;
 
 		if (lines !== undefined) {
@@ -173,6 +175,21 @@ export default class Data {
 				return l.trip_mappings;
 			}
 		});
+	}
+
+	private get_services(
+		system: string
+	): Promise<{ [service in string]?: Temporal.ZonedDateTime[] }> {
+		const services = this.systems[system]?.services;
+
+		if (services !== undefined) {
+			return services;
+		} else if (this.systems[system] === undefined) {
+			throw new Error(`transit system ${system} is undefined`);
+		}
+
+		this.systems[system].services = this.compute_services(system);
+		return this.systems[system]?.services;
 	}
 
 	private async compute_alerts(system: string): Promise<Alert[]> {
@@ -310,7 +327,7 @@ export default class Data {
 		gtfs
 			.flatMap((data) => data.stop_times)
 			.forEach((st) => {
-				const line = trip_mappings[st.trip] ?? "???";
+				const line = trip_mappings[st.trip]?.line ?? "???";
 
 				if (lines[st.stop] === undefined) {
 					lines[st.stop] = [
@@ -409,7 +426,7 @@ export default class Data {
 				.map((s) => s.trim())
 				.join(", ")}`;
 
-		const trip_mappings: { [trip in string]?: string } = {};
+		const trip_mappings: LinesInfo["trip_mappings"] = {};
 
 		for (const gtfs_trip of gtfs_trips) {
 			let shape: (LineString & { id: string }) | undefined = undefined;
@@ -440,14 +457,14 @@ export default class Data {
 			const line = lines.get(desc);
 
 			if (line !== undefined) {
-				trip_mappings[trip.id] = line.id;
+				trip_mappings[trip.id] = { line: line.id, service: gtfs_trip.service };
 
 				if (shape !== undefined) {
 					line.shape?.push(shape.id);
 				}
 			} else {
 				const id = `${trip.name}-${short_hash(desc)}`;
-				trip_mappings[trip.id] = id;
+				trip_mappings[trip.id] = { line: id, service: gtfs_trip.service };
 				lines.set(desc, {
 					...trip,
 					id,
@@ -505,8 +522,9 @@ export default class Data {
 			}
 		}
 
-		const [trip_mappings, lines_arr] = await Promise.all([
+		const [trip_mappings, services, lines_arr] = await Promise.all([
 			this.get_trip_mappings(system),
+			this.get_services(system),
 			this.get_lines(system),
 		]);
 
@@ -536,28 +554,73 @@ export default class Data {
 		);
 
 		const stop_schedules: {
-			[stop in string]?: RawGtfs["stop_times"] | StopSchedule[];
-		} = gtfs_stop_times;
+			[stop in string]?: Lazy<StopSchedule[]>;
+		} = {};
 
-		for (const [stop, st] of Object.entries(stop_schedules)) {
-			stop_schedules[stop] = (st as RawGtfs["stop_times"]).map(
-				(st): StopSchedule => {
-					const line = line_id(st.trip, trip_mappings);
+		for (const [stop, st] of Object.entries(gtfs_stop_times)) {
+			stop_schedules[stop] = new Lazy(() =>
+				(st as RawGtfs["stop_times"])
+					.flatMap((st) => {
+						const lid = line_id(st.trip, trip_mappings);
+						const line = lines[lid];
 
-					return {
-						line,
-						name: lines?.[line]?.name ?? "???",
-						headsign: lines?.[line]?.headsign ?? "",
-						arrival: st.arrival,
-						departure: st.departure,
-						delay: rt_updates[line]?.delay,
-						vehicle: rt_updates[line]?.vehicle,
-					};
-				}
+						const arrival_time = time(st.arrival);
+						const departure_time = time(st.departure);
+						const some_time = departure_time ?? arrival_time;
+
+						if (some_time === undefined) {
+							return [];
+						}
+
+						const start = Temporal.Now.zonedDateTimeISO("Etc/UTC")
+							.subtract({ days: 2 })
+							.subtract(some_time.round("days"));
+
+						const end = Temporal.Now.zonedDateTimeISO("Etc/UTC").add({
+							days: 8,
+						});
+
+						const is_in_range = (dt: Temporal.ZonedDateTime): boolean =>
+							start.since(dt).sign === -1 && end.since(dt).sign === 1;
+
+						if (trip_mappings[st.trip] === undefined) {
+							return [];
+						}
+
+						return (
+							services[trip_mappings[st.trip]!.service]
+								?.filter(is_in_range)
+								?.flatMap((date) => {
+									const arrival = date.add(
+										arrival_time === undefined ? some_time : arrival_time
+									);
+
+									const departure = date.add(
+										departure_time === undefined ? some_time : departure_time
+									);
+
+									return {
+										line: lid,
+										name: line?.name ?? "???",
+										headsign: line?.headsign ?? "",
+										arrival,
+										departure,
+										delay: rt_updates[lid]?.delay,
+										vehicle: rt_updates[lid]?.vehicle,
+									};
+								}) ?? []
+						);
+					})
+					.sort((a, b) => a.arrival.since(b.arrival).sign)
+					.map((s) => ({
+						...s,
+						arrival: s.arrival.toString(),
+						departure: s.departure.toString(),
+					}))
 			);
 		}
 
-		return stop_schedules as StopSchedules;
+		return stop_schedules;
 	}
 
 	private async compute_line_schedules(system: string): Promise<LineSchedules> {
@@ -573,12 +636,17 @@ export default class Data {
 			)
 		);
 
+		const [trip_mappings, services] = await Promise.all([
+			this.get_trip_mappings(system),
+			this.get_services(system),
+		]);
+
 		const gtfs_stop_times: { [line in string]?: RawGtfs["stop_times"] } = {};
 		for (const st of gtfs.flatMap((data) => data.stop_times)) {
-			if (gtfs_stop_times[st.trip] !== undefined) {
-				gtfs_stop_times[st.trip]?.push(st);
+			if (gtfs_stop_times[line_id(st.trip, trip_mappings)] !== undefined) {
+				gtfs_stop_times[line_id(st.trip, trip_mappings)]?.push(st);
 			} else {
-				gtfs_stop_times[st.trip] = [st];
+				gtfs_stop_times[line_id(st.trip, trip_mappings)] = [st];
 			}
 		}
 
@@ -586,8 +654,6 @@ export default class Data {
 			Object.fromEntries(
 				gtfs.flatMap((data) => data.stops).map((s) => [s.id, s])
 			);
-
-		const trip_mappings = await this.get_trip_mappings(system);
 
 		const rt = await Promise.all(
 			Object.entries(this.systems[system].raw_realtime)
@@ -612,37 +678,175 @@ export default class Data {
 
 		const line_schedules: LineSchedules = {};
 
-		for (const [trip, st] of Object.entries(gtfs_stop_times)) {
-			const line = line_id(trip, trip_mappings);
+		for (const [lid, st] of Object.entries(gtfs_stop_times)) {
+			line_schedules[lid] = new Lazy(() =>
+				(st as RawGtfs["stop_times"])
+					.flatMap((st) => {
+						const arrival_time = time(st.arrival);
+						const departure_time = time(st.departure);
+						const some_time = departure_time ?? arrival_time;
 
-			if (line_schedules[line] === undefined) {
-				line_schedules[line] = (st as RawGtfs["stop_times"]).map(
-					(st): LineSchedule => ({
-						stop: st.stop,
-						stop_name: stops[st.stop]?.name ?? "???",
-						arrival: st.arrival,
-						departure: st.departure,
-						delay: rt_updates[line]?.delay,
-						vehicle: rt_updates[line]?.vehicle,
+						if (some_time === undefined) {
+							return [];
+						}
+
+						const start = Temporal.Now.zonedDateTimeISO("Etc/UTC")
+							.subtract({ days: 2 })
+							.subtract(some_time.round("days"));
+
+						const end = Temporal.Now.zonedDateTimeISO("Etc/UTC").add({
+							days: 8,
+						});
+
+						const is_in_range = (dt: Temporal.ZonedDateTime): boolean =>
+							start.since(dt).sign === -1 && end.since(dt).sign === 1;
+
+						if (trip_mappings[st.trip] === undefined) {
+							return [];
+						}
+
+						return (
+							services[trip_mappings[st.trip]!.service]
+								?.filter(is_in_range)
+								?.flatMap((date) => {
+									const arrival = date.add(
+										arrival_time === undefined ? some_time : arrival_time
+									);
+
+									const departure = date.add(
+										departure_time === undefined ? some_time : departure_time
+									);
+
+									return {
+										stop: st.stop,
+										stop_name: stops[st.stop]?.name ?? "???",
+										arrival,
+										departure,
+										delay: rt_updates[lid]?.delay,
+										vehicle: rt_updates[lid]?.vehicle,
+									};
+								}) ?? []
+						);
 					})
-				);
-			} else {
-				line_schedules[line] = line_schedules[line].concat(
-					(st as RawGtfs["stop_times"]).map(
-						(st): LineSchedule => ({
-							stop: st.stop,
-							stop_name: stops[st.stop]?.name ?? "???",
-							arrival: st.arrival,
-							departure: st.departure,
-							delay: rt_updates[line]?.delay,
-							vehicle: rt_updates[line]?.vehicle,
-						})
-					)
-				);
-			}
+					.sort((a, b) => a.arrival.since(b.arrival).sign)
+					.map((s) => ({
+						...s,
+						arrival: s.arrival.toString(),
+						departure: s.departure.toString(),
+					}))
+			);
 		}
 
 		return line_schedules;
+	}
+
+	private async compute_services(
+		system: string
+	): Promise<{ [service in string]?: Temporal.ZonedDateTime[] }> {
+		console.debug(`computing services for ${system}`);
+
+		if (this.systems[system] === undefined) {
+			throw new Error(`Transit system ${system} not found`);
+		}
+
+		const gtfs = await Promise.all(
+			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+				this.fetch_or_cached_gtfs(system, gtfs)
+			)
+		);
+
+		const calendar = gtfs.flatMap(
+			(data) =>
+				data.calendar?.map((cal) => ({ ...cal, tz: data.timezone })) ?? []
+		);
+
+		const dates = gtfs.flatMap(
+			(data) =>
+				data.calendar_dates?.map((dat) => ({ ...dat, tz: data.timezone })) ?? []
+		);
+
+		const services: { [service in string]?: Temporal.ZonedDateTime[] } = {};
+
+		for (const cal of calendar) {
+			const start_date = date(cal.start_date);
+			const end_date = date(cal.end_date);
+
+			if (end_date.since(start_date).sign === -1) {
+				throw new Error(
+					`service ${cal.id}'s end date is before its start date`
+				);
+			}
+
+			const dates = [];
+			let current_date = start_date;
+			while (current_date.since(end_date).sign === -1) {
+				switch (current_date.dayOfWeek) {
+					case 1:
+						if (cal.monday) dates.push(current_date);
+						break;
+					case 2:
+						if (cal.tuesday) dates.push(current_date);
+						break;
+					case 3:
+						if (cal.wednesday) dates.push(current_date);
+						break;
+					case 4:
+						if (cal.thursday) dates.push(current_date);
+						break;
+					case 5:
+						if (cal.friday) dates.push(current_date);
+						break;
+					case 6:
+						if (cal.saturday) dates.push(current_date);
+						break;
+					case 7:
+						if (cal.sunday) dates.push(current_date);
+						break;
+				}
+
+				current_date = current_date.add(Temporal.Duration.from({ days: 1 }));
+			}
+
+			services[cal.id] = dates.map((d) =>
+				d.toZonedDateTime({
+					timeZone: cal.tz,
+					plainTime: "T12:00:00",
+				})
+			);
+		}
+
+		for (const dat of dates) {
+			if (dat.type === "removed") {
+				services[dat.id] = services[dat.id]?.filter(
+					(d) => !d.toPlainDate().equals(date(dat.date))
+				);
+			} else {
+				if (services[dat.id] === undefined) {
+					services[dat.id] = [
+						date(dat.date).toZonedDateTime({
+							timeZone: dat.tz,
+							plainTime: "T12:00:00",
+						}),
+					];
+				} else {
+					services[dat.id]?.push(
+						date(dat.date).toZonedDateTime({
+							timeZone: dat.tz,
+							plainTime: "T12:00:00",
+						})
+					);
+				}
+			}
+		}
+
+		return Object.fromEntries(
+			Object.entries(services).map(([k, v]) => [
+				k,
+				[...new Set(v?.map((dt) => dt.toString()))].map((s) =>
+					Temporal.ZonedDateTime.from(s)
+				),
+			])
+		);
 	}
 
 	private fetch_or_cached_gtfs(
@@ -693,10 +897,12 @@ export default class Data {
 					raw.data = undefined;
 
 					if (this.systems[system] !== undefined) {
-						this.systems[system].alerts = undefined;
 						this.systems[system].vehicles = undefined;
+						this.systems[system].lines = undefined;
 						this.systems[system].stop_schedules = undefined;
 						this.systems[system].line_schedules = undefined;
+						this.systems[system].services = undefined;
+						this.systems[system].stops = undefined;
 					}
 				}, ms(raw.max_age));
 			};
@@ -801,12 +1007,34 @@ export default class Data {
 	}
 }
 
+function date(yyyymmdd: string): Temporal.PlainDate {
+	const year = parseInt(yyyymmdd.substring(0, 4));
+	const month = parseInt(yyyymmdd.substring(4, 6));
+	const day = parseInt(yyyymmdd.substring(6, 8));
+
+	return Temporal.PlainDate.from({ year, month, day });
+}
+
+function time(hhmmss: string | undefined): Temporal.Duration | undefined {
+	if (hhmmss === undefined) {
+		return undefined;
+	}
+
+	const [hours, minutes, seconds] = hhmmss
+		.split(":")
+		.map((n) => parseInt(n, 10));
+
+	return Temporal.Duration.from({ hours: -12 }).add(
+		Temporal.Duration.from({ hours: hours, minutes, seconds })
+	);
+}
+
 function line_id(
 	trip_id: string | undefined,
-	trip_mappings: { [trip in string]?: string }
+	trip_mappings: { [trip in string]?: { line: string } }
 ): string {
 	if (trip_id) {
-		return trip_mappings[trip_id] ?? `???-${trip_id}`;
+		return trip_mappings[trip_id]?.line ?? `???-${trip_id}`;
 	}
 
 	return "???";

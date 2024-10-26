@@ -42,6 +42,8 @@ async function fetch_and_parse_gtfs(
 	const stops: RawGtfs["stops"] = [];
 	const stop_times: RawGtfs["stop_times"] = [];
 	let shapes: RawGtfs["shapes"] | undefined = undefined;
+	let calendar: RawGtfs["calendar"] | undefined = undefined;
+	let calendar_dates: RawGtfs["calendar_dates"] | undefined = undefined;
 
 	console.info(`fetch(${source})`);
 	const res = await fetch(source, {
@@ -59,10 +61,13 @@ async function fetch_and_parse_gtfs(
 
 	const unzipper = await unzip.fromBuffer(Buffer.from(zip));
 	const files: { [key in string]?: Readable | null } = {
+		"agency.txt": null,
 		"routes.txt": null,
 		"trips.txt": null,
 		"stops.txt": null,
 		"stop_times.txt": null,
+		"calendar.txt": null,
+		"calendar_dates.txt": null,
 		"shapes.txt": null,
 	};
 
@@ -73,6 +78,7 @@ async function fetch_and_parse_gtfs(
 	}
 
 	const required_files = [
+		"agency.txt",
 		"routes.txt",
 		"trips.txt",
 		"stops.txt",
@@ -82,11 +88,14 @@ async function fetch_and_parse_gtfs(
 	function has_required_files(files: {
 		[key in string]?: Readable | null;
 	}): files is {
+		"agency.txt": Readable;
 		"routes.txt": Readable;
 		"trips.txt": Readable;
 		"stops.txt": Readable;
 		"stop_times.txt": Readable;
 		"shapes.txt": Readable | null;
+		"calendar.txt": Readable | null;
+		"calendar_dates.txt": Readable | null;
 	} {
 		return Object.keys(files)
 			.filter((name) => required_files.includes(name))
@@ -107,6 +116,15 @@ async function fetch_and_parse_gtfs(
 
 	console.debug(`unzipped ${source}`);
 
+	const timezone: string = (
+		await files["agency.txt"]
+			.pipe(csv.parse({ columns: true }))
+			[Symbol.asyncIterator]()
+			.next()
+	).value["agency_timezone"];
+
+	console.debug(`parsed a timezone from ${source}`);
+
 	for await (const record of files["routes.txt"].pipe(
 		csv.parse({ columns: true })
 	)) {
@@ -124,6 +142,7 @@ async function fetch_and_parse_gtfs(
 	)) {
 		trips.push({
 			id: id(record["trip_id"]),
+			service: id(record["service_id"]),
 			headsign: record["trip_headsign"],
 			route: id(record["route_id"]),
 			shape: record["shape_id"] ? id(record["shape_id"]) : undefined,
@@ -179,12 +198,64 @@ async function fetch_and_parse_gtfs(
 		console.debug(`no shapes in ${source}`);
 	}
 
+	if (files["calendar.txt"] !== null) {
+		calendar = [];
+		for await (const record of files["calendar.txt"].pipe(
+			csv.parse({ columns: true })
+		)) {
+			calendar.push({
+				id: id(record["service_id"]),
+				monday: record["monday"] === "1",
+				tuesday: record["tuesday"] === "1",
+				wednesday: record["wednesday"] === "1",
+				thursday: record["thursday"] === "1",
+				friday: record["friday"] === "1",
+				saturday: record["saturday"] === "1",
+				sunday: record["sunday"] === "1",
+				start_date: record["start_date"],
+				end_date: record["end_date"],
+			});
+		}
+
+		console.debug(`parsed ${calendar.length} calendar entries from ${source}`);
+	} else {
+		console.debug(`no calendar entries in ${source}`);
+	}
+
+	if (files["calendar_dates.txt"] !== null) {
+		calendar_dates = [];
+		for await (const record of files["calendar_dates.txt"].pipe(
+			csv.parse({ columns: true })
+		)) {
+			calendar_dates.push({
+				id: id(record["service_id"]),
+				date: record["date"],
+				type: record["exception_type"] === "1" ? "added" : "removed",
+			});
+		}
+
+		console.debug(
+			`parsed ${calendar_dates.length} calendar dates from ${source}`
+		);
+	} else {
+		console.debug(`no calendar dates in ${source}`);
+	}
+
+	if (calendar === null && calendar_dates === null) {
+		throw new Error(
+			`calendar.txt and calendar_dates.txt are both missing from ${source}, at least one must be present`
+		);
+	}
+
 	return {
+		timezone,
 		routes,
 		trips,
 		stops,
 		stop_times,
 		shapes,
+		calendar,
+		calendar_dates,
 	};
 }
 
