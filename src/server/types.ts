@@ -181,8 +181,23 @@ export type RawRealtime = {
 		};
 		/** vehicle identifier that this update applies to, if known */
 		vehicle?: string;
-		/** delay in seconds compared to schedule */
-		delay: number;
+		/** updates to arrival/departure times of stops for this trip */
+		updates: {
+			/** stop sequence or id */
+			stop: number | string;
+			/** information about the arrival time, if arrival and departure are both missing, this stop is skipped */
+			arrival?: {
+				delay?: number;
+				time?: number;
+				uncertainty?: number;
+			};
+			/** information about the departure time, if arrival and departure are both missing, this stop is skipped */
+			departure?: {
+				delay?: number;
+				time?: number;
+				uncertainty?: number;
+			};
+		}[];
 	}[];
 	/** parsed alerts */
 	alerts?: {
@@ -245,8 +260,8 @@ export type Vehicle = {
 	id: string;
 	/** user-facing name of the vehicle */
 	name: string;
-	/** type of the vehicle, if known */
-	type?: VehicleType;
+	/** type of the vehicle */
+	type: VehicleType;
 	/** latitude of the vehicle */
 	lat: number;
 	/** longitude of the vehicle */
@@ -259,8 +274,6 @@ export type Vehicle = {
 	line_name: string;
 	/** headsign of the vehicle/line */
 	headsign: string;
-	/** delay compared to schedule of the vehicle, if known */
-	delay?: number;
 };
 
 /** a transit line */
@@ -312,8 +325,6 @@ export type StopSchedule = {
 	arrival: string;
 	/** departure time */
 	departure: string;
-	/** delay in seconds compared to schedule, if known */
-	delay?: number;
 	/** vehicle identifier serving this stop, if known */
 	vehicle?: string;
 };
@@ -333,8 +344,6 @@ export type LineSchedule = {
 	arrival: string;
 	/** departure time */
 	departure: string;
-	/** delay in seconds compared to schedule, if known */
-	delay?: number;
 	/** transit vehicle serving this stop, if known */
 	vehicle?: string;
 };

@@ -103,12 +103,25 @@ async function fetch_and_parse_realtime(
 				start_date: entity.tripUpdate.trip.startDate || undefined,
 			};
 
-			const delay = entity.tripUpdate.delay ?? undefined;
 			const vehicle = id(entity.tripUpdate.vehicle?.id || undefined);
 
-			if (delay !== undefined) {
-				trip_updates.push({ trip, delay, vehicle });
-			}
+			trip_updates.push({
+				trip,
+				vehicle,
+				updates: (entity.tripUpdate.stopTimeUpdate ?? []).map((upd) => ({
+					stop: upd.stopSequence ?? upd.stopId ?? "???",
+					arrival: {
+						time: num(upd.arrival?.time),
+						delay: upd.arrival?.delay ?? undefined,
+						uncertainty: upd.arrival?.uncertainty ?? undefined,
+					},
+					departure: {
+						time: num(upd.departure?.time),
+						delay: upd.departure?.delay ?? undefined,
+						uncertainty: upd.departure?.uncertainty ?? undefined,
+					},
+				})),
+			});
 		}
 
 		if (entity.vehicle !== undefined && entity.vehicle !== null) {

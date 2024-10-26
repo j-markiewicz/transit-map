@@ -233,16 +233,6 @@ export default class Data {
 			)
 		);
 
-		const gtfs_route_types = Object.fromEntries(
-			gtfs.map((gtfs) => gtfs.routes.map((r) => [r.id, r.type]))
-		);
-
-		const gtfs_trip_types = Object.fromEntries(
-			gtfs.map((gtfs) =>
-				gtfs.trips.map((t) => [t.id, gtfs_route_types[t.route]])
-			)
-		);
-
 		const rt = await Promise.all(
 			Object.keys(this.systems[system].raw_realtime).map((rt) =>
 				this.fetch_or_cached_realtime(system, rt)
@@ -253,17 +243,6 @@ export default class Data {
 			.map((rt) => rt.positions)
 			.filter((vehicles) => vehicles !== undefined)
 			.flat(1);
-
-		const rt_delays = Object.fromEntries(
-			rt
-				.map((rt) => rt.trip_updates)
-				.filter((upd) => upd !== undefined)
-				.flatMap((upd) =>
-					upd
-						.filter((u) => u.vehicle !== undefined)
-						.map((u) => [u.vehicle, u.delay])
-				)
-		);
 
 		const [trip_mappings, lines_arr] = await Promise.all([
 			this.get_trip_mappings(system),
@@ -280,7 +259,7 @@ export default class Data {
 			return {
 				id: vehicle.id,
 				name: vehicle.name,
-				type: gtfs_trip_types[vehicle.trip ?? ""],
+				type: lines[line]?.type ?? VehicleType.Other,
 				ts: vehicle.ts,
 				lat: vehicle.lat,
 				lon: vehicle.lon,
@@ -288,7 +267,6 @@ export default class Data {
 				line,
 				line_name: lines[line]?.name ?? "???",
 				headsign: lines[line]?.headsign ?? "",
-				delay: rt_delays[vehicle.id],
 			};
 		});
 	}
@@ -539,7 +517,7 @@ export default class Data {
 		);
 
 		const rt_updates: {
-			[line in string]?: { vehicle?: string; delay?: number };
+			[line in string]?: { vehicle?: string };
 		} = Object.fromEntries(
 			rt
 				.map((rt) => rt.trip_updates)
@@ -549,7 +527,7 @@ export default class Data {
 						.filter((u) => u.trip.trip !== undefined)
 						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!] }))
 						.filter((u) => u.line !== undefined)
-						.map((u) => [u.line, { vehicle: u.vehicle, delay: u.delay }])
+						.map((u) => [u.line, { vehicle: u.vehicle }])
 				)
 		);
 
@@ -605,7 +583,6 @@ export default class Data {
 										headsign: line?.headsign ?? "",
 										arrival,
 										departure,
-										delay: rt_updates[lid]?.delay,
 										vehicle: rt_updates[lid]?.vehicle,
 									};
 								}) ?? []
@@ -662,7 +639,7 @@ export default class Data {
 		);
 
 		const rt_updates: {
-			[line in string]?: { vehicle?: string; delay?: number };
+			[line in string]?: { vehicle?: string };
 		} = Object.fromEntries(
 			rt
 				.map((rt) => rt.trip_updates)
@@ -672,7 +649,7 @@ export default class Data {
 						.filter((u) => u.trip.trip !== undefined)
 						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!] }))
 						.filter((u) => u.line !== undefined)
-						.map((u) => [u.line, { vehicle: u.vehicle, delay: u.delay }])
+						.map((u) => [u.line, { vehicle: u.vehicle }])
 				)
 		);
 
@@ -722,7 +699,6 @@ export default class Data {
 										stop_name: stops[st.stop]?.name ?? "???",
 										arrival,
 										departure,
-										delay: rt_updates[lid]?.delay,
 										vehicle: rt_updates[lid]?.vehicle,
 									};
 								}) ?? []
