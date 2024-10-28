@@ -1,0 +1,78 @@
+{
+	"icon": {
+		"{z}": 15,
+		"{x}": 18198,
+		"{y}": 11105,
+		"{s}": "a",
+		"{r}": "@2x"
+	},
+	"maps": [
+		{
+			"name": "OpenStreetMap",
+			"url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/\">OpenStreetMap</a> contributors"
+		},
+		{
+			"name": "Voyager",
+			"url": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://carto.com/attributions\">CARTO</a>"
+		},
+		{
+			"name": "Dark",
+			"url": "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://carto.com/attributions\">CARTO</a>"
+		},
+		{
+			"name": "Esri Imagery",
+			"url": "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+			"attribution": "© Esri, Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community"
+		}
+	],
+	"overlays": [
+		{
+			"name": "Sea",
+			"url": "https://tiles.openseamap.org/seamark/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openseamap.org/copyright\">OpenSeaMap</a> contributors"
+		},
+		{
+			"name": "Rail",
+			"url": "https://{s}.tiles.openrailwaymap.org/standard/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://www.OpenRailwayMap.org\">OpenRailwayMap</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Hiking",
+			"url": "https://tile.waymarkedtrails.org/hiking/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Cycling",
+			"url": "https://tile.waymarkedtrails.org/cycling/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Mountainbiking",
+			"url": "https://tile.waymarkedtrails.org/mtb/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Skiing",
+			"url": "https://tile.waymarkedtrails.org/slopes/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Riding",
+			"url": "https://tile.waymarkedtrails.org/riding/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Skating",
+			"url": "https://tile.waymarkedtrails.org/skating/{z}/{x}/{y}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://waymarkedtrails.org\">waymarkedtrails.org</a> (<a href=\"https://creativecommons.org/licenses/by-sa/3.0/\">CC-BY-SA</a>)"
+		},
+		{
+			"name": "Labels",
+			"url": "https://{s}.basemaps.cartocdn.com/rastertiles/voyager_only_labels/{z}/{x}/{y}{r}.png",
+			"attribution": "© <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors, © <a href=\"https://carto.com/attributions\">CARTO</a>"
+		}
+	]
+}

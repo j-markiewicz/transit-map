@@ -1,0 +1,26 @@
+{
+	"name": "transit-map-website",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"build": "tsc -b && vite build",
+		"preview": "vite preview"
+	},
+	"dependencies": {
+		"@types/leaflet": "^1.9.14",
+		"geojson": "^0.5.0",
+		"leaflet": "^1.9.4",
+		"preact": "^10.24.3",
+		"temporal-polyfill": "^0.2.5",
+		"wouter-preact": "^3.3.5"
+	},
+	"devDependencies": {
+		"@preact/preset-vite": "^2.9.1",
+		"@types/geojson": "^7946.0.14",
+		"typescript": "~5.6.2",
+		"vite": "^5.4.9"
+	},
+	"packageManager": "yarn@1.22.22+sha1.ac34549e6aa8e7ead463a7407e1c7390f61a6610"
+}
