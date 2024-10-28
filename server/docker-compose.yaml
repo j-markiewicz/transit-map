@@ -23,10 +23,10 @@ services:
     labels:
       - traefik.enable=true
       # HTTPS
-      - traefik.http.routers.backend.rule=Host(`placeholder-domain-for-transit-map.com`)
+      - traefik.http.routers.backend.rule=Host(`transit-map.janm.dev`)
       - traefik.http.routers.backend.entrypoints=https
       - traefik.http.routers.backend.tls.certresolver=letsencrypt
-      - traefik.http.routers.backend.tls.domains[0].main=placeholder-domain-for-transit-map.com
+      - traefik.http.routers.backend.tls.domains[0].main=transit-map.janm.dev
       - traefik.http.services.backend.loadbalancer.server.port=8000
 
   # Traefik reverse proxy
@@ -37,7 +37,7 @@ services:
       - "80:80/tcp"
       - "443:443/tcp"
     environment:
-      - DOMAIN="placeholder-domain-for-transit-map.com"
+      - DOMAIN="transit-map.janm.dev"
       - ACME_EMAIL="j.markiewicz@student.uj.edu.pl"
     volumes:
       - traefik-certs:/certs
@@ -56,12 +56,11 @@ services:
       # HTTPS / WSS entrypoint
       - "--entrypoints.https.address=:443"
       - "--entrypoints.https.http.tls.certResolver=letsencrypt"
-      - "--entrypoints.https.http.tls.domains[0].main=placeholder-domain-for-transit-map.com"
+      - "--entrypoints.https.http.tls.domains[0].main=transit-map.janm.dev"
       # Docker provider
       - "--providers.docker=true"
       - "--providers.docker.exposedByDefault=false"
       # Let's Encrypt ACME Certs
       - "--certificatesResolvers.letsencrypt.acme.email=j.markiewicz@student.uj.edu.pl"
-      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # Comment out to issue actual real certificates
       - "--certificatesResolvers.letsencrypt.acme.tlschallenge=true"
       - "--certificatesResolvers.letsencrypt.acme.storage=/certs/certs.json"
