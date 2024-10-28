@@ -291,7 +291,14 @@ app
 	.once("listening", () => console.info(`Server listening on port ${port}`))
 	.once("listening", () => {
 		if (!process.argv.includes("--no-precache")) {
-			console.debug("pre-caching static GTFS");
+			console.info("pre-caching static GTFS (use `--no-precache` to disable)");
 			data.precache();
+		}
+	})
+	.once("listening", () => {
+		if (!process.argv.includes("--no-refetch")) {
+			console.info(
+				"automatic GTFS refetching enabled - non-realtime data will be refetched on expiry (use `--no-refetch` to disable)"
+			);
 		}
 	});

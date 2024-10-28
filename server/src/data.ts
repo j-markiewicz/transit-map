@@ -934,15 +934,40 @@ export default class Data {
 
 			const invalidate = () => {
 				setTimeout(() => {
-					raw.data = undefined;
+					if (!process.argv.includes("--no-refetch")) {
+						console.debug(
+							`Auto-refetching GTFS data for ${system} from ${source} (use \`--no-refetch\` to disable)`
+						);
 
-					if (this.systems[system] !== undefined) {
-						this.systems[system].vehicles = undefined;
-						this.systems[system].lines = undefined;
-						this.systems[system].stop_schedules = undefined;
-						this.systems[system].line_schedules = undefined;
-						this.systems[system].services = undefined;
-						this.systems[system].stops = undefined;
+						this.fetch_or_cached_gtfs(system, source).catch((err) => {
+							console.warn(`Error refetching GTFS data: ${err}`);
+
+							raw.data = undefined;
+
+							if (this.systems[system] !== undefined) {
+								this.systems[system].vehicles = undefined;
+								this.systems[system].lines = undefined;
+								this.systems[system].stop_schedules = undefined;
+								this.systems[system].line_schedules = undefined;
+								this.systems[system].services = undefined;
+								this.systems[system].stops = undefined;
+							}
+						});
+					} else {
+						console.debug(
+							`GTFS data for ${system} from ${source} expired (remove \`--no-refetch\` to automatically refetch data)`
+						);
+
+						raw.data = undefined;
+
+						if (this.systems[system] !== undefined) {
+							this.systems[system].vehicles = undefined;
+							this.systems[system].lines = undefined;
+							this.systems[system].stop_schedules = undefined;
+							this.systems[system].line_schedules = undefined;
+							this.systems[system].services = undefined;
+							this.systems[system].stops = undefined;
+						}
 					}
 				}, ms(raw.max_age));
 			};
