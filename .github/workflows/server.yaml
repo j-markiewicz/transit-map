@@ -23,5 +23,5 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - run: docker build -t ghcr.io/j-markiewicz/transit-map:latest -f server/Dockerfile .
+      - run: docker build -t ghcr.io/j-markiewicz/transit-map:latest -f server/Dockerfile server
       - run: docker push ghcr.io/j-markiewicz/transit-map:latest
