@@ -27,6 +27,8 @@ jobs:
           cd website
           yarn
           yarn build --base=/transit-map/
+        env:
+          VITE_MAP_API_BASE: https://transit-map.janm.dev/api/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: "website/dist/"
