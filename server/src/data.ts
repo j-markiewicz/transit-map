@@ -5,22 +5,23 @@ import { Worker } from "worker_threads";
 import { Temporal } from "temporal-polyfill";
 
 import {
-	Lazy,
-	VehicleType,
-	TimeInterval,
-	RawGtfs,
-	RawRealtime,
 	Alert,
-	Stop,
-	Vehicle,
+	BasicSystemInfo,
+	Lazy,
 	Line,
-	LinesInfo,
-	StopSchedule,
-	StopSchedules,
 	LineSchedule,
 	LineSchedules,
+	LinesInfo,
+	RawGtfs,
+	RawRealtime,
+	Stop,
+	StopSchedule,
+	StopSchedules,
 	SystemConfig,
 	SystemInfo,
+	TimeInterval,
+	Vehicle,
+	VehicleType,
 } from "./types.js";
 
 const gtfs_worker = new Worker(new URL("./gtfs_worker.js", import.meta.url));
@@ -52,6 +53,41 @@ export default class Data {
 				this.fetch_or_cached_gtfs(system, source);
 			}
 		}
+
+		this.get_all_info();
+	}
+
+	public get_all_info(): Promise<BasicSystemInfo[]> {
+		return Promise.all(
+			Object.keys(this.systems).map((system) => this.get_info(system))
+		).then((res) => res.filter((info) => info !== undefined));
+	}
+
+	public get_info(system: string): Promise<BasicSystemInfo> | undefined {
+		const sys = this.systems[system];
+
+		if (sys === undefined) {
+			return undefined;
+		}
+
+		const short_wait: Promise<undefined> = new Promise((res) =>
+			setTimeout(res, 10)
+		);
+
+		return (async () => ({
+			name: system,
+			location: sys.location,
+			gtfs_sources: Object.keys(sys.raw_gtfs).length,
+			rt_sources: Object.keys(sys.raw_realtime).length,
+			lines: await Promise.race([
+				this.get_lines(system)?.then((l) => l.length),
+				short_wait,
+			]),
+			stops: await Promise.race([
+				this.get_stops(system)?.then((s) => s.length),
+				short_wait,
+			]),
+		}))();
 	}
 
 	public get_alerts(system: string): Promise<Alert[]> | undefined {
@@ -284,52 +320,72 @@ export default class Data {
 			)
 		);
 
-		const trip_mappings = await this.get_trip_mappings(system);
+		const [trip_mappings, lines_arr] = await Promise.all([
+			this.get_trip_mappings(system),
+			this.get_lines(system),
+		]);
 
-		const trips = Object.fromEntries(
-			gtfs
-				.flatMap((data) => data.trips)
-				.map(({ id, route, headsign }) => [
-					trip_mappings[id],
-					{ route, headsign },
-				])
-		);
-
-		const routes = Object.fromEntries(
-			gtfs.flatMap((data) => data.routes).map(({ id, name }) => [id, name])
+		const lines: { [line in string]?: Line } = Object.fromEntries(
+			lines_arr?.map((l) => [l.id, l]) ?? []
 		);
 
 		const gtfs_stops = gtfs.flatMap((data) => data.stops);
-		const lines: { [key in string]?: Stop["lines"] } = {};
+		const stop_lines: { [stop in string]?: Stop["lines"] } = {};
+		const stop_types: {
+			[stop in string]?: Map<VehicleType, number>;
+		} = {};
 
 		gtfs
 			.flatMap((data) => data.stop_times)
 			.forEach((st) => {
-				const line = trip_mappings[st.trip]?.line ?? "???";
+				const lid = trip_mappings[st.trip]?.line ?? "???";
+				const line = lines[lid];
 
-				if (lines[st.stop] === undefined) {
-					lines[st.stop] = [
+				if (stop_lines[st.stop] === undefined) {
+					stop_lines[st.stop] = [
 						{
-							id: line,
-							headsign: trips[line].headsign,
-							name: routes[trips[line].route],
+							id: lid,
+							name: line?.name ?? "???",
+							headsign: line?.headsign ?? "",
 						},
 					];
-				} else if (lines[st.stop]?.every((s) => s.id !== line)) {
-					lines[st.stop]?.push({
-						id: line,
-						headsign: trips[line].headsign,
-						name: routes[trips[line].route],
+				} else if (stop_lines[st.stop]?.every((s) => s.id !== lid)) {
+					stop_lines[st.stop]?.push({
+						id: lid,
+						name: line?.name ?? "???",
+						headsign: line?.headsign ?? "",
 					});
+				}
+
+				if (line === undefined) {
+					return;
+				}
+
+				if (stop_types[st.stop] === undefined) {
+					stop_types[st.stop] = new Map();
+				}
+
+				if (stop_types[st.stop]!.has(line.type)) {
+					stop_types[st.stop]!.set(line.type, 0);
+				} else {
+					stop_types[st.stop]!.set(
+						line.type,
+						stop_types[st.stop]!.get(line.type)! + 1
+					);
 				}
 			});
 
 		return gtfs_stops.map((stop) => ({
 			id: stop.id,
 			name: stop.name,
+			types: [...new Set(stop_types[stop.id]?.keys() ?? [])].sort(
+				(a, b) =>
+					(stop_types[stop.id]?.get(a) ?? 0) -
+					(stop_types[stop.id]?.get(b) ?? 0)
+			),
 			lat: stop.lat,
 			lon: stop.lon,
-			lines: lines[stop.id] ?? [],
+			lines: stop_lines[stop.id] ?? [],
 		}));
 	}
 
@@ -419,15 +475,23 @@ export default class Data {
 				};
 			}
 
+			const stops =
+				gtfs_stop_times[gtfs_trip.id]
+					?.sort((a, b) => a.sequence - b.sequence)
+					?.map((st) => st.stop) ?? [];
+
+			const headsign =
+				gtfs_trip.headsign ||
+				`${gtfs_stops[stops[0]]?.name ?? "?"} - ${
+					gtfs_stops[stops[stops.length - 1]]?.name ?? "?"
+				}`;
+
 			const trip = {
 				id: gtfs_trip.id,
 				name: gtfs_routes[gtfs_trip.route]?.name ?? "???",
-				headsign: gtfs_trip.headsign,
+				headsign,
 				type: gtfs_routes[gtfs_trip.route]?.type ?? VehicleType.Other,
-				stops:
-					gtfs_stop_times[gtfs_trip.id]
-						?.sort((a, b) => a.sequence - b.sequence)
-						?.map((st) => st.stop) ?? [],
+				stops,
 				shape: shape !== undefined ? [shape.id] : [],
 			};
 
@@ -525,7 +589,7 @@ export default class Data {
 				.flatMap((upd) =>
 					upd
 						.filter((u) => u.trip.trip !== undefined)
-						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!] }))
+						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
 						.filter((u) => u.line !== undefined)
 						.map((u) => [u.line, { vehicle: u.vehicle }])
 				)
@@ -647,7 +711,7 @@ export default class Data {
 				.flatMap((upd) =>
 					upd
 						.filter((u) => u.trip.trip !== undefined)
-						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!] }))
+						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
 						.filter((u) => u.line !== undefined)
 						.map((u) => [u.line, { vehicle: u.vehicle }])
 				)

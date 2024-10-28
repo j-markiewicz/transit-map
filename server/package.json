@@ -1,11 +1,12 @@
 {
-	"name": "transit-map",
+	"name": "transit-map-server",
 	"version": "0.0.0",
 	"repository": "https://github.com/j-markiewicz/transit-map",
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "tsc && node build/server/main.js"
+		"dev": "yarn build && node build/main.js",
+		"build": "tsc"
 	},
 	"dependencies": {
 		"compression": "^1.7.4",

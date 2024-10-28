@@ -47,9 +47,21 @@ async function fetch_and_parse_realtime(
 	const positions: RawRealtime["positions"] = [];
 
 	console.info(`fetch(${source})`);
-	const res = await fetch(source, {
-		headers: { "User-Agent": `transit-map (Node.js ${process.version})` },
-	});
+
+	let res;
+	try {
+		res = await fetch(source, {
+			headers: { "User-Agent": `transit-map (Node.js ${process.version})` },
+		});
+	} catch (e: any) {
+		if ("cause" in e) {
+			throw new Error(
+				`External GTFS-RT API call to ${source} failed: ${e.cause} (${e})`
+			);
+		}
+
+		throw new Error(`External GTFS-RT API call to ${source} failed: ${e}`);
+	}
 
 	if (!res.ok) {
 		throw new Error(

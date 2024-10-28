@@ -223,6 +223,22 @@ export type RawRealtime = {
 	}[];
 };
 
+/** basic information about a transit system */
+export type BasicSystemInfo = {
+	/** the name (and also id) of this transit system */
+	name: string;
+	/** approximate location of this system as a bounding box */
+	location: [LatLon, LatLon];
+	/** number of gtfs schedule sources for this system */
+	gtfs_sources: number;
+	/** number of gtfs realtime sources for this system */
+	rt_sources: number;
+	/** number of stops in this system, if immediately known */
+	stops: number | undefined;
+	/** number of lines in this system, if immediately known */
+	lines: number | undefined;
+};
+
 /** an alert */
 export type Alert = {
 	/** the time during which this alert is active */
@@ -239,6 +255,8 @@ export type Stop = {
 	id: string;
 	/** user-facing name of this stop */
 	name: string;
+	/** types of vehicle serving this stop, sorted by prevalence */
+	types: VehicleType[];
 	/** latitude of this stop */
 	lat: number;
 	/** longitude of this stop */

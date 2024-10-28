@@ -46,9 +46,21 @@ async function fetch_and_parse_gtfs(
 	let calendar_dates: RawGtfs["calendar_dates"] | undefined = undefined;
 
 	console.info(`fetch(${source})`);
-	const res = await fetch(source, {
-		headers: { "User-Agent": `transit-map (Node.js ${process.version})` },
-	});
+
+	let res;
+	try {
+		res = await fetch(source, {
+			headers: { "User-Agent": `transit-map (Node.js ${process.version})` },
+		});
+	} catch (e: any) {
+		if ("cause" in e) {
+			throw new Error(
+				`External GTFS API call to ${source} failed: ${e.cause} (${e})`
+			);
+		}
+
+		throw new Error(`External GTFS API call to ${source} failed: ${e}`);
+	}
 
 	if (!res.ok) {
 		throw new Error(
@@ -131,7 +143,7 @@ async function fetch_and_parse_gtfs(
 		routes.push({
 			id: id(record["route_id"]),
 			name: record["route_short_name"] || record["route_long_name"],
-			type: vehicle_type(JSON.parse(record["route_type"])),
+			type: vehicle_type(parseInt(record["route_type"])),
 		});
 	}
 
@@ -158,8 +170,8 @@ async function fetch_and_parse_gtfs(
 			stops.push({
 				id: id(record["stop_id"]),
 				name: record["stop_name"],
-				lat: record["stop_lat"],
-				lon: record["stop_lon"],
+				lat: parseFloat(record["stop_lat"]),
+				lon: parseFloat(record["stop_lon"]),
 			});
 		}
 	}
@@ -172,7 +184,7 @@ async function fetch_and_parse_gtfs(
 		stop_times.push({
 			stop: id(record["stop_id"]),
 			trip: id(record["trip_id"]),
-			sequence: JSON.parse(record["stop_sequence"]),
+			sequence: parseInt(record["stop_sequence"]),
 			departure: record["departure_time"] || undefined,
 			arrival: record["arrival_time"] || undefined,
 		});
@@ -187,9 +199,9 @@ async function fetch_and_parse_gtfs(
 		)) {
 			shapes.push({
 				id: id(record["shape_id"]),
-				lat: record["shape_pt_lat"],
-				lon: record["shape_pt_lon"],
-				sequence: JSON.parse(record["shape_pt_sequence"]),
+				lat: parseFloat(record["shape_pt_lat"]),
+				lon: parseFloat(record["shape_pt_lon"]),
+				sequence: parseInt(record["shape_pt_sequence"]),
 			});
 		}
 

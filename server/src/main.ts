@@ -16,11 +16,11 @@ const data = new Data({
 		raw_gtfs: {
 			"https://gtfs.ztp.krakow.pl/GTFS_KRK_T.zip": {
 				id: "t",
-				max_age: "2h",
+				max_age: "1d",
 			},
 			"https://gtfs.ztp.krakow.pl/GTFS_KRK_A.zip": {
 				id: "a",
-				max_age: "2h",
+				max_age: "1d",
 			},
 		},
 		raw_realtime: {
@@ -50,8 +50,26 @@ const data = new Data({
 			},
 		},
 	},
+	"Koleje Małopolskie": {
+		location: [
+			[50.6, 21.5],
+			[49.45, 19],
+		],
+		raw_gtfs: {
+			"https://kolejemalopolskie.com.pl/rozklady_jazdy/kml-ska-gtfs.zip": {
+				id: "ska",
+				max_age: "1d",
+			},
+			"https://kolejemalopolskie.com.pl/rozklady_jazdy/ald-gtfs.zip": {
+				id: "bus",
+				max_age: "1d",
+			},
+		},
+		raw_realtime: {},
+	},
 });
 
+app.set("x-powered-by", false);
 app.use(compression());
 
 app.all(/.*/giu, (req, _, next) => {
@@ -59,8 +77,36 @@ app.all(/.*/giu, (req, _, next) => {
 	next();
 });
 
-app.get("/", (req, res) => {
-	res.send("Hello");
+app.get("/api", async (req, res) => {
+	try {
+		res.json(await data.get_all_info());
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
+});
+
+app.get("/api/:system", async (req, res) => {
+	try {
+		const { system } = req.params;
+
+		if (!data.has_system(system)) {
+			res
+				.status(404)
+				.type("text/plain")
+				.send(`Transit system ${system} not found`);
+			return;
+		}
+
+		res.json(await data.get_info(system));
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
 });
 
 app.get("/api/:system/alerts", async (req, res) => {
