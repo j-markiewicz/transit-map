@@ -44,6 +44,42 @@ export class Map extends Component<{
 	private intervals: ReturnType<typeof setInterval>[] = [];
 
 	componentDidMount() {
+		this.set_up_map();
+		this.set_up_markers();
+	}
+
+	componentDidUpdate({
+		system: old_system,
+	}: Readonly<{ children: ComponentChildren; system: string }>) {
+		if (old_system !== this.props.system) {
+			this.map?.remove();
+			this.intervals.forEach((int) => clearInterval(int));
+
+			this.set_up_map();
+			this.set_up_markers();
+		}
+	}
+
+	componentWillUnmount() {
+		this.map?.remove();
+		this.intervals.forEach((int) => clearInterval(int));
+	}
+
+	render({
+		children,
+	}: Readonly<{
+		children: ComponentChildren;
+		system: string;
+	}>): ComponentChild {
+		return (
+			<div class={style.wrapper}>
+				<section class={style.sidebar}>{children}</section>
+				<section id="map-container" class={style.map}></section>
+			</div>
+		);
+	}
+
+	private set_up_map() {
 		const maps = Object.fromEntries(
 			layers.maps.map((l) => [
 				`<img src="${l.url.replace(/\{[rsxyz]\}/gu, (m) =>
@@ -97,7 +133,9 @@ export class Map extends Component<{
 				this.map?.flyToBounds(info.location);
 			}
 		});
+	}
 
+	private set_up_markers() {
 		get_stops(this.props.system).then((stops) => {
 			if (stops !== undefined && this.map !== undefined) {
 				const map = this.map;
@@ -197,24 +235,6 @@ export class Map extends Component<{
 				);
 			}
 		});
-	}
-
-	componentWillUnmount() {
-		this.intervals.forEach((int) => clearInterval(int));
-	}
-
-	render({
-		children,
-	}: {
-		children: ComponentChildren;
-		system: string;
-	}): ComponentChild {
-		return (
-			<div class={style.wrapper}>
-				<section class={style.sidebar}>{children}</section>
-				<section id="map-container" class={style.map}></section>
-			</div>
-		);
 	}
 }
 

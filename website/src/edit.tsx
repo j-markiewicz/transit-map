@@ -1,4 +1,4 @@
-import style from "./edit.module.css";
+// import style from "./edit.module.css";
 
 export function Edit({ system }: { system?: string }) {
 	if (system !== undefined) {

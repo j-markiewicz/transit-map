@@ -1,4 +1,4 @@
-import style from "./stop.module.css";
+// import style from "./stop.module.css";
 
 export function Stop({ system, id }: { system: string; id: string }) {
 	return (

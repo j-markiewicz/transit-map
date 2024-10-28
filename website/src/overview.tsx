@@ -1,9 +1,9 @@
 import { useState } from "preact/hooks";
 
-import style from "./overview.module.css";
+// import style from "./overview.module.css";
 
 export function Overview({ system }: { system: string }) {
-	const [tab, setTab] = useState<"lines" | "stops" | "alerts">("lines");
+	const [tab, _setTab] = useState<"lines" | "stops" | "alerts">("lines");
 
 	return (
 		<>
