@@ -34,6 +34,7 @@ import other_vehicle_icon from "./assets/icons/other-vehicle.svg";
 import layers from "./layers.json";
 import "leaflet/dist/leaflet.css";
 import style from "./map.module.css";
+import "./map.css";
 import { get_vehicles, get_stops, get_info, VehicleType } from "./api.ts";
 
 export class Map extends Component<{

@@ -17,6 +17,12 @@
 
 .map {
 	grid-area: map;
+	cursor: default;
+	outline: none;
+}
+
+.map:active {
+	cursor: grabbing;
 }
 
 .vehicle {
