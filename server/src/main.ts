@@ -1,5 +1,6 @@
 import express from "express";
 import compression from "compression";
+import cors from "cors";
 import "dotenv/config";
 
 import Data from "./data.js";
@@ -71,11 +72,27 @@ const data = new Data({
 
 app.set("x-powered-by", false);
 app.use(compression());
+app.use(
+	cors({
+		origin: true,
+		methods: ["GET"],
+		credentials: true,
+	})
+);
 
-app.all(/.*/giu, (req, _, next) => {
+app.all("*", (req, _, next) => {
 	console.info(`${req.method} ${req.path}`);
 	next();
 });
+
+app.options(
+	"*",
+	cors({
+		origin: true,
+		methods: ["GET"],
+		credentials: true,
+	})
+);
 
 app.get("/api", async (req, res) => {
 	try {
