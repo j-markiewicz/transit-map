@@ -147,6 +147,13 @@ export class Map extends Component<{
 				for (const stop of stops) {
 					stop_markers.push(
 						L.marker([stop.lat, stop.lon], {
+							title: `${stop.name} (${[
+								...new Set(stop.lines.map((l) => l.name)),
+							]
+								.sort()
+								.sort((a, b) => a.length - b.length)
+								.join(", ")})`,
+							draggable: false,
 							icon: L.icon({
 								iconUrl: stop_icon(stop.types[0] ?? VehicleType.Other),
 								iconSize: [zoom * 48, zoom * 64],
@@ -181,6 +188,8 @@ export class Map extends Component<{
 					vehicle_markers.set(
 						vehicle.id,
 						L.marker([vehicle.lat, vehicle.lon], {
+							title: `${vehicle.line_name} ${vehicle.headsign} (${vehicle.name})`,
+							draggable: false,
 							icon: L.icon({
 								iconUrl: vehicle_icon(vehicle.type),
 								iconSize: [zoom * 64, zoom * 64],
@@ -224,6 +233,8 @@ export class Map extends Component<{
 								vehicle_markers.set(
 									vehicle.id,
 									L.marker([vehicle.lat, vehicle.lon], {
+										title: `${vehicle.line_name} ${vehicle.headsign} (${vehicle.name})`,
+										draggable: false,
 										icon: L.icon({
 											iconUrl: vehicle_icon(vehicle.type),
 											iconSize: [zoom * 64, zoom * 64],
