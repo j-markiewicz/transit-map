@@ -1,0 +1,67 @@
+name: transit-map
+
+volumes:
+  traefik-certs:
+
+
+networks:
+  transit-map:
+
+
+services:
+  # transit-map API server
+  server:
+    image: ghcr.io/j-markiewicz/transit-map:latest
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    restart: always
+    networks:
+      - transit-map
+    environment:
+      - PORT=8000
+    labels:
+      - traefik.enable=true
+      # HTTPS
+      - traefik.http.routers.backend.rule=Host(`placeholder-domain-for-transit-map.com`)
+      - traefik.http.routers.backend.entrypoints=https
+      - traefik.http.routers.backend.tls.certresolver=letsencrypt
+      - traefik.http.routers.backend.tls.domains[0].main=placeholder-domain-for-transit-map.com
+      - traefik.http.services.backend.loadbalancer.server.port=8000
+
+  # Traefik reverse proxy
+  traefik:
+    image: traefik:2.11
+    restart: always
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      - DOMAIN="placeholder-domain-for-transit-map.com"
+      - ACME_EMAIL="j.markiewicz@student.uj.edu.pl"
+    volumes:
+      - traefik-certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - transit-map
+    command:
+      # General setup
+      - "--log.level=DEBUG"
+      - "--global.checkNewVersion=true"
+      - "--global.sendAnonymousUsage=false"
+      # HTTP entrypoint (redirect to HTTPS)
+      - "--entrypoints.http.address=:80"
+      - "--entrypoints.http.http.redirections.entryPoint.to=https"
+      - "--entrypoints.http.http.redirections.entryPoint.scheme=https"
+      # HTTPS / WSS entrypoint
+      - "--entrypoints.https.address=:443"
+      - "--entrypoints.https.http.tls.certResolver=letsencrypt"
+      - "--entrypoints.https.http.tls.domains[0].main=placeholder-domain-for-transit-map.com"
+      # Docker provider
+      - "--providers.docker=true"
+      - "--providers.docker.exposedByDefault=false"
+      # Let's Encrypt ACME Certs
+      - "--certificatesResolvers.letsencrypt.acme.email=j.markiewicz@student.uj.edu.pl"
+      - "--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory" # Comment out to issue actual real certificates
+      - "--certificatesResolvers.letsencrypt.acme.tlschallenge=true"
+      - "--certificatesResolvers.letsencrypt.acme.storage=/certs/certs.json"

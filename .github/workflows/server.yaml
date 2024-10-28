@@ -1,0 +1,27 @@
+name: Build and publish server
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "build"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    environment:
+      name: ghcr
+      url: ghcr.io/j-markiewicz/transit-map:latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - run: docker build -t ghcr.io/j-markiewicz/transit-map:latest -f server/Dockerfile .
+      - run: docker push ghcr.io/j-markiewicz/transit-map:latest
