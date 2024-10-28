@@ -906,6 +906,19 @@ export default class Data {
 			return raw.data;
 		}
 
+		const invalidate = () => {
+			raw.data = undefined;
+
+			if (this.systems[system] !== undefined) {
+				this.systems[system].vehicles = undefined;
+				this.systems[system].lines = undefined;
+				this.systems[system].stop_schedules = undefined;
+				this.systems[system].line_schedules = undefined;
+				this.systems[system].services = undefined;
+				this.systems[system].stops = undefined;
+			}
+		};
+
 		const data = (async () => {
 			const fetch_and_parse = (src: string, id: string): Promise<RawGtfs> => {
 				return new Promise((resolve, reject) => {
@@ -932,7 +945,7 @@ export default class Data {
 				});
 			};
 
-			const invalidate = () => {
+			const schedule_invalidation = () => {
 				setTimeout(() => {
 					if (!process.argv.includes("--no-refetch")) {
 						console.debug(
@@ -941,40 +954,21 @@ export default class Data {
 
 						this.fetch_or_cached_gtfs(system, source).catch((err) => {
 							console.warn(`Error refetching GTFS data: ${err}`);
-
-							raw.data = undefined;
-
-							if (this.systems[system] !== undefined) {
-								this.systems[system].vehicles = undefined;
-								this.systems[system].lines = undefined;
-								this.systems[system].stop_schedules = undefined;
-								this.systems[system].line_schedules = undefined;
-								this.systems[system].services = undefined;
-								this.systems[system].stops = undefined;
-							}
+							invalidate();
 						});
 					} else {
 						console.debug(
 							`GTFS data for ${system} from ${source} expired (remove \`--no-refetch\` to automatically refetch data)`
 						);
 
-						raw.data = undefined;
-
-						if (this.systems[system] !== undefined) {
-							this.systems[system].vehicles = undefined;
-							this.systems[system].lines = undefined;
-							this.systems[system].stop_schedules = undefined;
-							this.systems[system].line_schedules = undefined;
-							this.systems[system].services = undefined;
-							this.systems[system].stops = undefined;
-						}
+						invalidate();
 					}
 				}, ms(raw.max_age));
 			};
 
 			try {
 				return await fetch_and_parse(source, raw.id).then((res) => {
-					invalidate();
+					schedule_invalidation();
 					return res;
 				});
 			} catch (e) {
@@ -982,13 +976,17 @@ export default class Data {
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
 				return await fetch_and_parse(source, raw.id).then((res) => {
-					invalidate();
+					schedule_invalidation();
 					return res;
 				});
 			}
 		})();
 
-		raw.data = data;
+		raw.data = data.catch((err) => {
+			invalidate();
+			throw err;
+		});
+
 		return raw.data;
 	}
 
@@ -1008,6 +1006,17 @@ export default class Data {
 			console.debug(`using cached GTFS-RT from ${source}`);
 			return raw.data;
 		}
+
+		const invalidate = () => {
+			raw.data = undefined;
+
+			if (this.systems[system] !== undefined) {
+				this.systems[system].alerts = undefined;
+				this.systems[system].vehicles = undefined;
+				this.systems[system].stop_schedules = undefined;
+				this.systems[system].line_schedules = undefined;
+			}
+		};
 
 		const data = (async () => {
 			const fetch_and_parse = (
@@ -1039,21 +1048,12 @@ export default class Data {
 				});
 			};
 
-			const invalidate = () =>
-				setTimeout(async () => {
-					raw.data = undefined;
-
-					if (this.systems[system] !== undefined) {
-						this.systems[system].alerts = undefined;
-						this.systems[system].vehicles = undefined;
-						this.systems[system].stop_schedules = undefined;
-						this.systems[system].line_schedules = undefined;
-					}
-				}, ms(raw.max_age));
+			const schedule_invalidation = () =>
+				setTimeout(invalidate, ms(raw.max_age));
 
 			try {
 				return await fetch_and_parse(source, raw.id).then((res) => {
-					invalidate();
+					schedule_invalidation();
 					return res;
 				});
 			} catch (e) {
@@ -1061,13 +1061,17 @@ export default class Data {
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
 				return await fetch_and_parse(source, raw.id).then((res) => {
-					invalidate();
+					schedule_invalidation();
 					return res;
 				});
 			}
 		})();
 
-		raw.data = data;
+		raw.data = data.catch((err) => {
+			invalidate();
+			throw err;
+		});
+
 		return raw.data;
 	}
 }
