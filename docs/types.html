@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Types - transit-map API Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>Types</h1>
+
+			<h2 id="basic-system-info"><code>BasicSystemInfo</code></h2>
+
+			<p>Basic information about a transit system.</p>
+
+			<b>Type: Object</b>
+
+			<h3>Properties:</h3>
+			<ul>
+				<li>
+					<code>name</code> (<code>string</code>) - The name of this transit
+					system
+				</li>
+				<li>
+					<code>location</code> (<a href="#bounding-box"
+						><code>BoundingBox</code></a
+					>) - The approximate location of this transit system (used as the
+					initial position of the map)
+				</li>
+				<li>
+					<code>gtfs_sources</code> (<code>number</code>) - Number of GTFS
+					Schedule sources in this system
+				</li>
+				<li>
+					<code>rt_sources</code> (<code>number</code>) - Number of GTFS
+					Realtime sources in this system
+				</li>
+				<li>
+					<code>stops</code> (<code>number</code> or <code>undefined</code>) -
+					Number of transit stops in this system or undefined if the information
+					is not immediately available
+				</li>
+				<li>
+					<code>lines</code> (<code>number</code> or <code>undefined</code>) -
+					Number of transit lines in this system or undefined if the information
+					is not immediately available
+				</li>
+			</ul>
+
+			<h2 id="alert"><code>Alert</code></h2>
+
+			<p>
+				Information about an actively ongoing (if <code>time</code> is
+				undefined) or scheduled alert to transit users.
+			</p>
+
+			<b>Type: Object</b>
+
+			<h3>Properties:</h3>
+			<ul>
+				<li>
+					<code>time</code> (<code
+						><a href="#time-interval">TimeInterval</a></code
+					>
+					or <code>undefined</code>) - The time during which this alert is
+					active (if <code>undefined</code>, the alert is active as long as it's
+					getting returned from the API)
+				</li>
+				<li>
+					<code>info</code> (<code>string</code>) - Short information about this
+					alert (e.g. the alert's title)
+				</li>
+				<li>
+					<code>details</code> (<code>string</code>) - Detailed information
+					about this alert
+				</li>
+			</ul>
+
+			<h2 id="bounding-box"><code>BoundingBox</code></h2>
+
+			<p>A rectangular geografic area.</p>
+
+			<b>Type: Array (of length 2)</b>
+
+			<h3>Members:</h3>
+			<ol start="0">
+				<li>
+					<code>[number, number]</code> - Latitude and longitude of one corner
+					of the bounding box
+				</li>
+				<li>
+					<code>[number, number]</code> - Latitude and longitude of the opposite
+					corner of the bounding box
+				</li>
+			</ol>
+
+			<h2 id="time-interval"><code>TimeInterval</code></h2>
+
+			<p>
+				A period of time with an optional start and an optional end timestamp.
+				At least one of <code>start</code> or <code>end</code> must be defined;
+				both fields can not be <code>undefined</code> simultaneously.
+			</p>
+
+			<b>Type: Array (of length 2)</b>
+
+			<h3>Members:</h3>
+			<ol start="0">
+				<li>
+					<code>number</code> or <code>undefined</code> - The timestamp of the
+					start of the time period (if <code>undefined</code>, the time interval
+					starts "forever ago")
+				</li>
+				<li>
+					<code>number</code> or <code>undefined</code> - The timestamp of the
+					end of the time period (if <code>undefined</code>, the time interval
+					never ends)
+				</li>
+			</ol>
+		</main>
+	</body>
+</html>

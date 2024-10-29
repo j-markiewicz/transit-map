@@ -1,0 +1,150 @@
+:root {
+	color-scheme: light dark;
+	--fonts: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+		"Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue",
+		sans-serif;
+	--fonts-mono: "Fira Code", "Jetbrains Mono", "Roboto Mono", "Oxygen Mono",
+		"Ubuntu Mono", monospace;
+
+	--fg-color: #1f2329;
+	--fg-grey: #59636e;
+	--bg-grey: #f6f8fa;
+	--bg-color: #ffffff;
+	--link-color: #0969da;
+}
+
+html,
+body {
+	margin: 0 0 1rem 0;
+	padding: 0;
+	tab-size: 4ch;
+	background-color: var(--bg-color);
+	color: var(--fg-color);
+	font-family: var(--fonts);
+	display: flex;
+	justify-content: center;
+}
+
+main {
+	display: block;
+	margin: 0 auto;
+	max-width: 100ch;
+}
+
+code,
+pre {
+	font-family: var(--fonts-mono);
+	background-color: var(--bg-grey);
+	padding: 0.15rem 0.25rem;
+	border-radius: 0.5rem;
+}
+
+pre {
+	min-height: 2rem;
+	padding: 0.5rem;
+}
+
+a {
+	color: var(--link-color);
+	cursor: pointer;
+}
+
+h2 {
+	margin: 2rem 0 1rem 0;
+}
+
+li {
+	margin: 0.75rem 0;
+}
+
+button {
+	font-family: var(--fonts);
+	background-color: var(--bg-grey);
+	padding: 0.25rem 0.5rem;
+	border: 1px var(--fg-grey) solid;
+	outline: none;
+	border-radius: 0.5rem;
+	cursor: pointer;
+}
+
+table {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+td,
+th {
+	border: var(--bg-grey) 2px solid;
+	padding: 0.5rem;
+}
+
+th {
+	background-color: var(--bg-grey);
+}
+
+td:nth-child(1),
+td:nth-child(2) {
+	text-align: end;
+	text-wrap: nowrap;
+	width: fit-content;
+}
+
+.inline-img {
+	height: 1.2em;
+	vertical-align: text-bottom;
+}
+
+#try-api {
+	display: grid;
+	gap: 0.2rem 1rem;
+	grid-template-columns: auto 1fr auto;
+	grid-template-rows: 2rem 2rem 1fr;
+	grid-template-areas: "url-label url button" "out-label out-label out-label" "out out out";
+}
+
+#try-api-url-label {
+	grid-area: url-label;
+	margin: auto 0;
+}
+
+#try-api-url-wrapper {
+	grid-area: url;
+	display: flex;
+	margin: auto 0;
+}
+
+#try-api-url {
+	flex-grow: 1;
+	border: none;
+	outline: none;
+	background: none;
+	font-family: var(--fonts-mono);
+	font-size: 1rem;
+}
+
+#try-api-button {
+	grid-area: button;
+}
+
+#try-api-out-label {
+	grid-area: out-label;
+	margin: auto 0;
+}
+
+#try-api-out-wrapper {
+	grid-area: out;
+}
+
+#try-api-out-wrapper > pre {
+	margin: 0;
+}
+
+@media (prefers-color-scheme: dark) {
+	:root {
+		--fg-color: #f0f6fc;
+		--fg-grey: #9198a1;
+		--bg-grey: #1e2329;
+		--bg-color: #0d1117;
+		--link-color: #4493f8;
+	}
+}
