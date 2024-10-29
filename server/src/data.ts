@@ -380,8 +380,8 @@ export default class Data {
 			name: stop.name,
 			types: [...new Set(stop_types[stop.id]?.keys() ?? [])].sort(
 				(a, b) =>
-					(stop_types[stop.id]?.get(a) ?? 0) -
-					(stop_types[stop.id]?.get(b) ?? 0)
+					(stop_types[stop.id]?.get(b) ?? 0) -
+					(stop_types[stop.id]?.get(a) ?? 0)
 			),
 			lat: stop.lat,
 			lon: stop.lon,
