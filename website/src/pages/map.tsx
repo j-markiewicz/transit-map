@@ -1,4 +1,5 @@
 import { Component, ComponentChild, ComponentChildren } from "preact";
+import { navigate } from "wouter-preact/use-hash-location";
 import L from "leaflet";
 
 import railway_stop_icon from "../assets/icons/railway-stop.svg";
@@ -158,7 +159,11 @@ export class Map extends Component<{
 								iconUrl: stop_icon(stop.types[0] ?? VehicleType.Other),
 								iconSize: [zoom * 48, zoom * 64],
 							}),
-						}).addTo(map)
+						})
+							.addTo(map)
+							.on("click", () =>
+								navigate(`/${this.props.system}/stop/${stop.id}`)
+							)
 					);
 				}
 
@@ -194,7 +199,11 @@ export class Map extends Component<{
 								iconUrl: vehicle_icon(vehicle.type),
 								iconSize: [zoom * 64, zoom * 64],
 							}),
-						}).addTo(map)
+						})
+							.addTo(map)
+							.on("click", () =>
+								navigate(`/${this.props.system}/line/${vehicle.line}`)
+							)
 					);
 				}
 
@@ -239,7 +248,11 @@ export class Map extends Component<{
 											iconUrl: vehicle_icon(vehicle.type),
 											iconSize: [zoom * 64, zoom * 64],
 										}),
-									}).addTo(map)
+									})
+										.addTo(map)
+										.on("click", () =>
+											navigate(`/${this.props.system}/line/${vehicle.line}`)
+										)
 								);
 							}
 						}
