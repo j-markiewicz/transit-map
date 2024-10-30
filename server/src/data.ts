@@ -304,7 +304,7 @@ export default class Data {
 				ts: vehicle.ts,
 				lat: vehicle.lat,
 				lon: vehicle.lon,
-				hdg: vehicle.hdg ?? 0,
+				hdg: vehicle.hdg,
 				line,
 				line_name: lines[line]?.name ?? "???",
 				headsign: lines[line]?.headsign ?? "",
@@ -523,15 +523,10 @@ export default class Data {
 		}
 
 		return {
-			lines: [...lines.values()]
-				.map((l) => ({
-					...l,
-					shape: [...new Set(l.shape?.filter((s) => s !== undefined))],
-				}))
-				.map((l) => ({
-					...l,
-					shape: l.shape.length === 0 ? undefined : l.shape,
-				})),
+			lines: [...lines.values()].map((l) => ({
+				...l,
+				shape: [...new Set(l.shape?.filter((s) => s !== undefined))],
+			})),
 			trip_mappings,
 			shapes: Object.fromEntries(
 				Object.entries(shapes)

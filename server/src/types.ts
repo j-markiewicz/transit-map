@@ -284,8 +284,8 @@ export type Vehicle = {
 	lat: number;
 	/** longitude of the vehicle */
 	lon: number;
-	/** heading/bearing of the vehicle */
-	hdg: number;
+	/** heading/bearing of the vehicle, if known */
+	hdg: number | undefined;
 	/** line identifier of the vehicle */
 	line: string;
 	/** user-facing name of the line */
@@ -315,8 +315,8 @@ export type Line = {
 	}[];
 	/** vehicle type used on the line */
 	type: VehicleType;
-	/** identifier(s) of the path(s) of the line, if known */
-	shape?: string[];
+	/** identifier(s) of the path(s) of the line */
+	shape: string[];
 };
 
 /** information about transit lines */

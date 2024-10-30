@@ -3,121 +3,418 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
 		<title>Types - transit-map API Documentation</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
 		<main>
-			<h1>Types</h1>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				Types
+			</h1>
 
-			<h2 id="basic-system-info"><code>BasicSystemInfo</code></h2>
+			<section>
+				<h2 id="basic-system-info"><code>BasicSystemInfo</code></h2>
 
-			<p>Basic information about a transit system.</p>
+				<p>Basic information about a transit system.</p>
 
-			<b>Type: Object</b>
+				<b>Type: Object</b>
 
-			<h3>Properties:</h3>
-			<ul>
-				<li>
-					<code>name</code> (<code>string</code>) - The name of this transit
-					system
-				</li>
-				<li>
-					<code>location</code> (<a href="#bounding-box"
-						><code>BoundingBox</code></a
-					>) - The approximate location of this transit system (used as the
-					initial position of the map)
-				</li>
-				<li>
-					<code>gtfs_sources</code> (<code>number</code>) - Number of GTFS
-					Schedule sources in this system
-				</li>
-				<li>
-					<code>rt_sources</code> (<code>number</code>) - Number of GTFS
-					Realtime sources in this system
-				</li>
-				<li>
-					<code>stops</code> (<code>number</code> or <code>undefined</code>) -
-					Number of transit stops in this system or undefined if the information
-					is not immediately available
-				</li>
-				<li>
-					<code>lines</code> (<code>number</code> or <code>undefined</code>) -
-					Number of transit lines in this system or undefined if the information
-					is not immediately available
-				</li>
-			</ul>
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>name</code> (<code>string</code>) - The name of this transit
+						system
+					</li>
+					<li>
+						<code>location</code> (<a href="#bounding-box"
+							><code>BoundingBox</code></a
+						>) - The approximate location of this transit system (used as the
+						initial position of the map)
+					</li>
+					<li>
+						<code>gtfs_sources</code> (<code>number</code>) - Number of GTFS
+						Schedule sources in this system
+					</li>
+					<li>
+						<code>rt_sources</code> (<code>number</code>) - Number of GTFS
+						Realtime sources in this system
+					</li>
+					<li>
+						<code>stops</code> (<code>number</code> or <code>undefined</code>) -
+						Number of transit stops in this system or undefined if the
+						information is not immediately available
+					</li>
+					<li>
+						<code>lines</code> (<code>number</code> or <code>undefined</code>) -
+						Number of transit lines in this system or undefined if the
+						information is not immediately available
+					</li>
+				</ul>
+			</section>
 
-			<h2 id="alert"><code>Alert</code></h2>
+			<section>
+				<h2 id="alert"><code>Alert</code></h2>
 
-			<p>
-				Information about an actively ongoing (if <code>time</code> is
-				undefined) or scheduled alert to transit users.
-			</p>
+				<p>
+					Information about an actively ongoing (if <code>time</code> is
+					undefined) or scheduled alert to transit users.
+				</p>
 
-			<b>Type: Object</b>
+				<b>Type: Object</b>
 
-			<h3>Properties:</h3>
-			<ul>
-				<li>
-					<code>time</code> (<code
-						><a href="#time-interval">TimeInterval</a></code
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>time</code> (<code
+							><a href="#time-interval">TimeInterval</a></code
+						>
+						or <code>undefined</code>) - The time during which this alert is
+						active (if <code>undefined</code>, the alert is active as long as
+						it's getting returned from the API)
+					</li>
+					<li>
+						<code>info</code> (<code>string</code>) - Short information about
+						this alert (e.g. the alert's title)
+					</li>
+					<li>
+						<code>details</code> (<code>string</code>) - Detailed information
+						about this alert
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="vehicle"><code>Vehicle</code></h2>
+
+				<p>
+					Information about a transit vehicle's real-time location, line, type,
+					etc.
+				</p>
+
+				<b>Type: Object</b>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - This vehicle's unique ID
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - A user-visible identifier
+						for this vehicle
+					</li>
+					<li>
+						<code>type</code> (<code
+							><a href="#vehicle-type">VehicleType</a></code
+						>) - The type of this vehicle
+					</li>
+					<li>
+						<code>lat</code> (<code>number</code>) - The current latitude of the
+						vehicle
+					</li>
+					<li>
+						<code>lon</code> (<code>number</code>) - The current longitude of
+						the vehicle
+					</li>
+					<li>
+						<code>hdg</code> (<code>number</code> or <code>undefined</code>) -
+						The current heading/bearing of the vehicle, if known
+					</li>
+					<li>
+						<code>line</code> (<code>string</code>) - The identifier of this
+						vehicle's transit line
+					</li>
+					<li>
+						<code>line_name</code> (<code>string</code>) - The name of this
+						vehicle's line
+					</li>
+					<li>
+						<code>headsign</code> (<code>string</code>) - The headsign of this
+						vehicle's line
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="stop"><code>Stop</code></h2>
+
+				<p>
+					Information about a transit stop, including its name, location, etc.
+				</p>
+
+				<b>Type: Object</b>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - Unique identifier of this
+						stop
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - User-facing name of this
+						stop
+					</li>
+					<li>
+						<code>types</code> (<code
+							><a href="#vehicle-type">VehicleType[]</a></code
+						>) - Types of vehicles stopping at this stop, from most to least
+						common
+					</li>
+					<li>
+						<code>lat</code> (<code>number</code>) - Latitude of this stop
+					</li>
+					<li>
+						<code>lon</code> (<code>number</code>) - Longitude of this stop
+					</li>
+					<li>
+						<code>lines</code> (<code>object[]</code>) - An array of objects
+						describing transit lines that stop at this stop (see below)
+					</li>
+				</ul>
+
+				<h3>Properties of the objects in <code>lines</code>:</h3>
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - Unique identifier of this
+						line
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - User-facing name of this
+						line
+					</li>
+					<li>
+						<code>headsign</code> (<code>string</code>) - Headsign of this line
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="line"><code>Line</code></h2>
+
+				<p>Description.</p>
+
+				<b>Type: Object</b>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - Unique ID of this line
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - User-facing name of this
+						line
+					</li>
+					<li>
+						<code>headsign</code> (<code>string</code>) - Headsign of this line
+						(often e.g. the last stop)
+					</li>
+					<li>
+						<code>stops</code> (<code>object[]</code>) - Stops served by this
+						line (see below)
+					</li>
+					<li>
+						<code>type</code> (<code
+							><a href="#vehicle-type">VehicleType</a></code
+						>) - The type of vehicles on this line
+					</li>
+					<li>
+						<code>shape</code> (<code>string[]</code>) - Identifiers of shapes
+						describing this line
+					</li>
+				</ul>
+
+				<h3>Properties of the objects in <code>stops</code>:</h3>
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - Unique identifier of this
+						stop
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - User-facing name of this
+						stop
+					</li>
+					<li>
+						<code>lat</code> (<code>number</code>) - Latitude of this stop
+					</li>
+					<li>
+						<code>lon</code> (<code>number</code>) - Longitude of this stop
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="stop-schedule"><code>StopSchedule</code></h2>
+
+				<p>Information about a single scheduled stop at a transit stop.</p>
+
+				<b>Type: Object</b>
+
+				<h3>Members:</h3>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>line</code> (<code>string</code>) - Unique ID of the line
+						stopping at this stop
+					</li>
+					<li>
+						<code>name</code> (<code>string</code>) - The line's user-facing
+						name
+					</li>
+					<li>
+						<code>headsign</code> (<code>string</code>) - The line's headsign
+					</li>
+					<li>
+						<code>arrival</code> (<code>string</code>) - Arrival time (in the
+						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
+							><code>Temporal.ZonedDateTime</code></a
+						>
+						string format)
+					</li>
+					<li>
+						<code>departure</code> (<code>string</code>) - Departure time (in
+						the
+						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
+							><code>Temporal.ZonedDateTime</code></a
+						>
+						string format)
+					</li>
+					<li>
+						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
+						- Unique identifier of the vehicle serving this stop, if known
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="line-schedule"><code>LineSchedule</code></h2>
+
+				<p>Information about a single scheduled stop by a transit line.</p>
+
+				<b>Type: Object</b>
+
+				<h3>Members:</h3>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>stop</code> (<code>string</code>) - Unique identifier of the
+						stop
+					</li>
+					<li>
+						<code>stop_name</code> (<code>string</code>) - User-facing name of
+						the stop
+					</li>
+					<li>
+						<code>arrival</code> (<code>string</code>) - Arrival time (in the
+						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
+							><code>Temporal.ZonedDateTime</code></a
+						>
+						string format)
+					</li>
+					<li>
+						<code>departure</code> (<code>string</code>) - Departure time (in
+						the
+						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
+							><code>Temporal.ZonedDateTime</code></a
+						>
+						string format)
+					</li>
+					<li>
+						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
+						- Unique ID of the transit vehicle serving this stop, if known
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="bounding-box"><code>BoundingBox</code></h2>
+
+				<p>A rectangular geografic area.</p>
+
+				<b>Type: Array (of length 2)</b>
+
+				<h3>Members:</h3>
+				<ol start="0">
+					<li>
+						<code>[number, number]</code> - Latitude and longitude of one corner
+						of the bounding box
+					</li>
+					<li>
+						<code>[number, number]</code> - Latitude and longitude of the
+						opposite corner of the bounding box
+					</li>
+				</ol>
+			</section>
+
+			<section>
+				<h2 id="time-interval"><code>TimeInterval</code></h2>
+
+				<p>
+					A period of time with an optional start and an optional end timestamp.
+					At least one of <code>start</code> or <code>end</code> must be
+					defined; both fields can not be <code>undefined</code> simultaneously.
+				</p>
+
+				<b>Type: Array (of length 2)</b>
+
+				<h3>Members:</h3>
+				<ol start="0">
+					<li>
+						<code>number</code> or <code>undefined</code> - The timestamp of the
+						start of the time period (if <code>undefined</code>, the time
+						interval starts "forever ago")
+					</li>
+					<li>
+						<code>number</code> or <code>undefined</code> - The timestamp of the
+						end of the time period (if <code>undefined</code>, the time interval
+						never ends)
+					</li>
+				</ol>
+			</section>
+
+			<section>
+				<h2 id="vehicle-type"><code>VehicleType</code></h2>
+
+				<p>
+					The type of a transit vehicle. This is a subset of the values
+					permitted in GTFS's
+					<a href="https://gtfs.org/documentation/schedule/reference/#routestxt"
+						><code>routes.txt > route_type</code></a
 					>
-					or <code>undefined</code>) - The time during which this alert is
-					active (if <code>undefined</code>, the alert is active as long as it's
-					getting returned from the API)
-				</li>
-				<li>
-					<code>info</code> (<code>string</code>) - Short information about this
-					alert (e.g. the alert's title)
-				</li>
-				<li>
-					<code>details</code> (<code>string</code>) - Detailed information
-					about this alert
-				</li>
-			</ul>
+					with the
+					<a
+						href="https://developers.google.com/transit/gtfs/reference/extended-route-types"
+						>Extended Route Types</a
+					>
+					extension.
+				</p>
 
-			<h2 id="bounding-box"><code>BoundingBox</code></h2>
+				<b>Type: enum (number)</b>
 
-			<p>A rectangular geografic area.</p>
-
-			<b>Type: Array (of length 2)</b>
-
-			<h3>Members:</h3>
-			<ol start="0">
-				<li>
-					<code>[number, number]</code> - Latitude and longitude of one corner
-					of the bounding box
-				</li>
-				<li>
-					<code>[number, number]</code> - Latitude and longitude of the opposite
-					corner of the bounding box
-				</li>
-			</ol>
-
-			<h2 id="time-interval"><code>TimeInterval</code></h2>
-
-			<p>
-				A period of time with an optional start and an optional end timestamp.
-				At least one of <code>start</code> or <code>end</code> must be defined;
-				both fields can not be <code>undefined</code> simultaneously.
-			</p>
-
-			<b>Type: Array (of length 2)</b>
-
-			<h3>Members:</h3>
-			<ol start="0">
-				<li>
-					<code>number</code> or <code>undefined</code> - The timestamp of the
-					start of the time period (if <code>undefined</code>, the time interval
-					starts "forever ago")
-				</li>
-				<li>
-					<code>number</code> or <code>undefined</code> - The timestamp of the
-					end of the time period (if <code>undefined</code>, the time interval
-					never ends)
-				</li>
-			</ol>
+				<h3>Variants:</h3>
+				<ol>
+					<li value="100">Heavy rail</li>
+					<li value="200">Coach bus</li>
+					<li value="400">Urban rail / metro</li>
+					<li value="405">Monorail</li>
+					<li value="700">Bus</li>
+					<li value="800">Trolleybus</li>
+					<li value="900">Tram / light rail</li>
+					<li value="1000">Water transport</li>
+					<li value="1100">Air transport</li>
+					<li value="1200">Ferry</li>
+					<li value="1300">Aerial lift / cable car</li>
+					<li value="1400">Funicular</li>
+					<li value="1500">Taxi service</li>
+					<li value="1700">Other / unknown</li>
+				</ol>
+			</section>
 		</main>
 	</body>
 </html>
