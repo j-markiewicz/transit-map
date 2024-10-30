@@ -1,18 +1,21 @@
 import gtfs_rt from "gtfs-realtime-bindings";
 
 import { RawRealtime } from "./types.js";
-import { parentPort } from "worker_threads";
+import { parentPort, threadId } from "worker_threads";
 
 parentPort?.on("message", (data) => {
 	try {
-		const { port, source, id_prefix } = data;
+		const {
+			port,
+			req: { source, id_prefix },
+		} = data;
 
-		console.debug(`rt_worker <-- ${JSON.stringify(data)}`);
+		console.debug(`rt_worker[${threadId}] <-- ${JSON.stringify(data)}`);
 
 		const send = (msg: any) => {
 			const json = JSON.stringify(msg);
 			console.debug(
-				`rt_worker --> ${
+				`rt_worker[${threadId}] --> ${
 					json.length > 120 ? json.substring(0, 115) + "..." : json
 				}`
 			);

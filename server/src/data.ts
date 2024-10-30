@@ -23,9 +23,14 @@ import {
 	Vehicle,
 	VehicleType,
 } from "./types.js";
+import WorkerPool from "./workqueue.js";
 
-const gtfs_worker = new Worker(new URL("./gtfs_worker.js", import.meta.url));
-const realtime_worker = new Worker(new URL("./rt_worker.js", import.meta.url));
+const gtfs_workers = new WorkerPool(
+	new URL("./gtfs_worker.js", import.meta.url)
+);
+const realtime_workers = new WorkerPool(
+	new URL("./rt_worker.js", import.meta.url)
+);
 
 export default class Data {
 	constructor(config: { [name in string]?: SystemConfig }) {
@@ -920,31 +925,6 @@ export default class Data {
 		};
 
 		const data = (async () => {
-			const fetch_and_parse = (src: string, id: string): Promise<RawGtfs> => {
-				return new Promise((resolve, reject) => {
-					const { port1, port2 } = new MessageChannel();
-
-					port1.onmessage = (ev) => {
-						const {
-							res,
-							err,
-						}:
-							| { res: RawGtfs; err: undefined }
-							| { err: unknown; res: undefined } = ev.data;
-
-						if (err !== undefined) {
-							reject(err);
-						} else {
-							resolve(res!);
-						}
-					};
-
-					gtfs_worker.postMessage({ port: port2, source: src, id_prefix: id }, [
-						port2 as any,
-					]);
-				});
-			};
-
 			const schedule_invalidation = () => {
 				setTimeout(() => {
 					if (!process.argv.includes("--no-refetch")) {
@@ -967,18 +947,18 @@ export default class Data {
 			};
 
 			try {
-				return await fetch_and_parse(source, raw.id).then((res) => {
+				return gtfs_workers.run({ source, id_prefix: raw.id }).then((res) => {
 					schedule_invalidation();
 					return res;
-				});
+				}) as Promise<RawGtfs>;
 			} catch (e) {
 				console.warn(`Error getting GTFS data: ${e}, retrying`);
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
-				return await fetch_and_parse(source, raw.id).then((res) => {
+				return gtfs_workers.run({ source, id_prefix: raw.id }).then((res) => {
 					schedule_invalidation();
 					return res;
-				});
+				}) as Promise<RawGtfs>;
 			}
 		})();
 
@@ -1019,51 +999,26 @@ export default class Data {
 		};
 
 		const data = (async () => {
-			const fetch_and_parse = (
-				src: string,
-				id: string
-			): Promise<RawRealtime> => {
-				return new Promise((resolve, reject) => {
-					const { port1, port2 } = new MessageChannel();
-
-					port1.onmessage = (ev) => {
-						const {
-							res,
-							err,
-						}:
-							| { res: RawRealtime; err: undefined }
-							| { err: unknown; res: undefined } = ev.data;
-
-						if (err !== undefined) {
-							reject(err);
-						} else {
-							resolve(res!);
-						}
-					};
-
-					realtime_worker.postMessage(
-						{ port: port2, source: src, id_prefix: id },
-						[port2 as any]
-					);
-				});
-			};
-
 			const schedule_invalidation = () =>
 				setTimeout(invalidate, ms(raw.max_age));
 
 			try {
-				return await fetch_and_parse(source, raw.id).then((res) => {
-					schedule_invalidation();
-					return res;
-				});
+				return realtime_workers
+					.run({ source, id_prefix: raw.id })
+					.then((res) => {
+						schedule_invalidation();
+						return res;
+					}) as Promise<RawRealtime>;
 			} catch (e) {
 				console.warn(`Error getting GTFS-RT data: ${e}, retrying`);
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
-				return await fetch_and_parse(source, raw.id).then((res) => {
-					schedule_invalidation();
-					return res;
-				});
+				return realtime_workers
+					.run({ source, id_prefix: raw.id })
+					.then((res) => {
+						schedule_invalidation();
+						return res;
+					}) as Promise<RawRealtime>;
 			}
 		})();
 

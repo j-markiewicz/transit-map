@@ -3,18 +3,21 @@ import * as unzip from "yauzl-promise";
 import { Readable } from "stream";
 
 import { RawGtfs, VehicleType } from "./types.js";
-import { parentPort } from "worker_threads";
+import { parentPort, threadId } from "worker_threads";
 
 parentPort?.on("message", (data) => {
 	try {
-		const { port, source, id_prefix } = data;
+		const {
+			port,
+			req: { source, id_prefix },
+		} = data;
 
-		console.debug(`gtfs_worker <-- ${JSON.stringify(data)}`);
+		console.debug(`gtfs_worker[${threadId}] <-- ${JSON.stringify(data)}`);
 
 		const send = (msg: any) => {
 			const json = JSON.stringify(msg);
 			console.debug(
-				`gtfs_worker --> ${
+				`gtfs_worker[${threadId}] --> ${
 					json.length > 120 ? json.substring(0, 115) + "..." : json
 				}`
 			);
