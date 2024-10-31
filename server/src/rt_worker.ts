@@ -12,7 +12,7 @@ parentPort?.on("message", (data) => {
 
 		console.debug(`rt_worker[${threadId}] <-- ${JSON.stringify(data)}`);
 
-		const send = (msg: any) => {
+		const send = (msg: unknown) => {
 			const json = JSON.stringify(msg);
 			console.debug(
 				`rt_worker[${threadId}] --> ${

@@ -14,7 +14,7 @@ parentPort?.on("message", (data) => {
 
 		console.debug(`gtfs_worker[${threadId}] <-- ${JSON.stringify(data)}`);
 
-		const send = (msg: any) => {
+		const send = (msg: unknown) => {
 			const json = JSON.stringify(msg);
 			console.debug(
 				`gtfs_worker[${threadId}] --> ${
