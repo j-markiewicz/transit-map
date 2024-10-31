@@ -1,7 +1,6 @@
 import { LineString } from "geojson";
 import ms from "ms";
 import { createHash } from "crypto";
-import { Worker } from "worker_threads";
 import { Temporal } from "temporal-polyfill";
 
 import {
@@ -267,12 +266,6 @@ export default class Data {
 		if (this.systems[system] === undefined) {
 			throw new Error(`Transit system ${system} not found`);
 		}
-
-		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
-				this.fetch_or_cached_gtfs(system, gtfs)
-			)
-		);
 
 		const rt = await Promise.all(
 			Object.keys(this.systems[system].raw_realtime).map((rt) =>
