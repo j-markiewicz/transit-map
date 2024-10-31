@@ -22,7 +22,7 @@ import {
 	Vehicle,
 	VehicleType,
 } from "./types.js";
-import WorkerPool from "./workqueue.js";
+import WorkerPool from "./workerpool.js";
 
 const gtfs_workers = new WorkerPool(
 	new URL("./gtfs_worker.js", import.meta.url)
