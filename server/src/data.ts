@@ -345,6 +345,7 @@ export default class Data {
 							id: lid,
 							name: line?.name ?? "???",
 							headsign: line?.headsign ?? "",
+							type: line?.type ?? VehicleType.Other,
 						},
 					];
 				} else if (stop_lines[st.stop]?.every((s) => s.id !== lid)) {
@@ -352,6 +353,7 @@ export default class Data {
 						id: lid,
 						name: line?.name ?? "???",
 						headsign: line?.headsign ?? "",
+						type: line?.type ?? VehicleType.Other,
 					});
 				}
 

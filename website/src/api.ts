@@ -130,7 +130,7 @@ export type Stop = {
 	lat: number;
 	/** longitude of this stop */
 	lon: number;
-	/** lines, which stop at this stop */
+	/** lines that stop at this stop */
 	lines: {
 		/** identifier of the line */
 		id: string;
@@ -138,6 +138,8 @@ export type Stop = {
 		name: string;
 		/** headsign of the line */
 		headsign: string;
+		/** type of vehicle used on this line */
+		type: VehicleType;
 	}[];
 };
 
