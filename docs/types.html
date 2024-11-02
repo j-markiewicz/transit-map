@@ -137,6 +137,16 @@
 						<code>headsign</code> (<code>string</code>) - The headsign of this
 						vehicle's line
 					</li>
+					<li>
+						<code>delay</code> (<code>[number, number]</code> or
+						<code>[number, undefined]</code> or <code>undefined</code>) - The
+						current delay of this vehicle (in seconds) and the uncertainty of
+						the delay (in seconds, if known,
+						<a
+							href="https://gtfs.org/documentation/realtime/reference/#message-stoptimeevent"
+							>exact statistical meaning unspecified</a
+						>), if known
+					</li>
 				</ul>
 			</section>
 
@@ -293,6 +303,12 @@
 						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
 						- Unique identifier of the vehicle serving this stop, if known
 					</li>
+					<li>
+						<code>delay</code> (<code>[number, number]</code> or
+						<code>[number, undefined]</code> or <code>undefined</code>) - The
+						delay of this stop (in seconds) and the uncertainty of the delay (in
+						seconds, if known), if known
+					</li>
 				</ul>
 			</section>
 
@@ -333,6 +349,12 @@
 					<li>
 						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
 						- Unique ID of the transit vehicle serving this stop, if known
+					</li>
+					<li>
+						<code>delay</code> (<code>[number, number]</code> or
+						<code>[number, undefined]</code> or <code>undefined</code>) - The
+						delay of this stop (in seconds) and the uncertainty of the delay (in
+						seconds, if known), if known
 					</li>
 				</ul>
 			</section>

@@ -283,12 +283,49 @@ export default class Data {
 			this.get_lines(system),
 		]);
 
+		const rt_updates: {
+			[line in string]?: Map<
+				number | string,
+				{
+					arrival?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+					departure?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+				}
+			>;
+		} = Object.fromEntries(
+			rt
+				.map((rt) => rt.trip_updates)
+				.filter((upd) => upd !== undefined)
+				.flatMap((upd) =>
+					upd
+						.filter((u) => u.trip.trip !== undefined)
+						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
+						.filter((u) => u.line !== undefined)
+						.map((u) => [u.line, new Map(u.updates.map((u) => [u.stop, u]))])
+				)
+		);
+
 		const lines: { [line in string]?: Line } = Object.fromEntries(
 			lines_arr?.map((l) => [l.id, l]) ?? []
 		);
 
 		return rt_vehicles.map((vehicle) => {
 			const line = line_id(vehicle.trip, trip_mappings);
+
+			const update =
+				vehicle.stop === undefined
+					? undefined
+					: rt_updates[line]?.get(vehicle.stop);
+			const delay = update?.departure?.delay ?? update?.departure?.delay;
+			const uncertainty =
+				update?.departure?.uncertainty ?? update?.departure?.uncertainty;
 
 			return {
 				id: vehicle.id,
@@ -301,6 +338,7 @@ export default class Data {
 				line,
 				line_name: lines[line]?.name ?? "???",
 				headsign: lines[line]?.headsign ?? "",
+				delay: delay !== undefined ? [delay, uncertainty] : undefined,
 			};
 		});
 	}
@@ -576,7 +614,22 @@ export default class Data {
 		);
 
 		const rt_updates: {
-			[line in string]?: { vehicle?: string };
+			[line in string]?: {
+				vehicle?: string;
+				updates: {
+					stop: number | string;
+					arrival?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+					departure?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+				}[];
+			};
 		} = Object.fromEntries(
 			rt
 				.map((rt) => rt.trip_updates)
@@ -586,7 +639,7 @@ export default class Data {
 						.filter((u) => u.trip.trip !== undefined)
 						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
 						.filter((u) => u.line !== undefined)
-						.map((u) => [u.line, { vehicle: u.vehicle }])
+						.map((u) => [u.line, u])
 				)
 		);
 
@@ -636,6 +689,35 @@ export default class Data {
 										departure_time === undefined ? some_time : departure_time
 									);
 
+									const diff = (
+										dt: number | undefined,
+										st: Temporal.Duration | undefined
+									) => {
+										if (dt === undefined || st == undefined) {
+											return undefined;
+										}
+
+										return date
+											.add(st)
+											.toInstant()
+											.since(Temporal.Instant.fromEpochSeconds(dt)).seconds;
+									};
+
+									const upd = rt_updates[lid]?.updates?.find(
+										(u) => u.stop === st.sequence || u.stop === st.stop
+									);
+
+									const delay =
+										upd?.departure?.delay ??
+										diff(upd?.departure?.time, departure_time) ??
+										upd?.arrival?.delay ??
+										diff(upd?.arrival?.time, arrival_time) ??
+										diff(upd?.departure?.time, some_time) ??
+										diff(upd?.arrival?.time, some_time);
+
+									const uncertainty =
+										upd?.departure?.uncertainty ?? upd?.arrival?.uncertainty;
+
 									return {
 										line: lid,
 										name: line?.name ?? "???",
@@ -643,6 +725,10 @@ export default class Data {
 										arrival,
 										departure,
 										vehicle: rt_updates[lid]?.vehicle,
+										delay:
+											delay !== undefined
+												? ([delay, uncertainty] as [number, number | undefined])
+												: undefined,
 									};
 								}) ?? []
 						);
@@ -698,7 +784,22 @@ export default class Data {
 		);
 
 		const rt_updates: {
-			[line in string]?: { vehicle?: string };
+			[line in string]?: {
+				vehicle?: string;
+				updates: {
+					stop: number | string;
+					arrival?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+					departure?: {
+						delay?: number;
+						time?: number;
+						uncertainty?: number;
+					};
+				}[];
+			};
 		} = Object.fromEntries(
 			rt
 				.map((rt) => rt.trip_updates)
@@ -708,7 +809,7 @@ export default class Data {
 						.filter((u) => u.trip.trip !== undefined)
 						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
 						.filter((u) => u.line !== undefined)
-						.map((u) => [u.line, { vehicle: u.vehicle }])
+						.map((u) => [u.line, u])
 				)
 		);
 
@@ -753,12 +854,45 @@ export default class Data {
 										departure_time === undefined ? some_time : departure_time
 									);
 
+									const diff = (
+										dt: number | undefined,
+										st: Temporal.Duration | undefined
+									) => {
+										if (dt === undefined || st == undefined) {
+											return undefined;
+										}
+
+										return date
+											.add(st)
+											.toInstant()
+											.since(Temporal.Instant.fromEpochSeconds(dt)).seconds;
+									};
+
+									const upd = rt_updates[lid]?.updates.find(
+										(u) => u.stop === st.sequence || u.stop === st.stop
+									);
+
+									const delay =
+										upd?.departure?.delay ??
+										diff(upd?.departure?.time, departure_time) ??
+										upd?.arrival?.delay ??
+										diff(upd?.arrival?.time, arrival_time) ??
+										diff(upd?.departure?.time, some_time) ??
+										diff(upd?.arrival?.time, some_time);
+
+									const uncertainty =
+										upd?.departure?.uncertainty ?? upd?.arrival?.uncertainty;
+
 									return {
 										stop: st.stop,
 										stop_name: stops[st.stop]?.name ?? "???",
 										arrival,
 										departure,
 										vehicle: rt_updates[lid]?.vehicle,
+										delay:
+											delay !== undefined
+												? ([delay, uncertainty] as [number, number | undefined])
+												: undefined,
 									};
 								}) ?? []
 						);

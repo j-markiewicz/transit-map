@@ -160,6 +160,8 @@ export type Vehicle = {
 	line_name: string;
 	/** headsign of the vehicle/line */
 	headsign: string;
+	/** the current delay of this vehicle and its uncertainty, if known */
+	delay?: [number, number | undefined];
 };
 
 /** a transit line */
@@ -201,6 +203,8 @@ export type StopSchedule = {
 	departure: string;
 	/** vehicle identifier serving this stop, if known */
 	vehicle?: string;
+	/** this stop's delay and its uncertainty in seconds, if known */
+	delay?: [number, number | undefined];
 };
 
 /** a single scheduled stop by a transit line */
@@ -215,4 +219,6 @@ export type LineSchedule = {
 	departure: string;
 	/** transit vehicle serving this stop, if known */
 	vehicle?: string;
+	/** this stop's delay and its uncertainty in seconds, if known */
+	delay?: [number, number | undefined];
 };

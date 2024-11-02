@@ -162,6 +162,8 @@ export type RawRealtime = {
 		lon: number;
 		/** heading/bearing in degrees of the vehicle, if known */
 		hdg: number | undefined;
+		/** the sequence number or id of the next or current stop for this vehicle, if known */
+		stop: number | string | undefined;
 	}[];
 	/** parsed trip updates */
 	trip_updates?: {
@@ -291,6 +293,8 @@ export type Vehicle = {
 	line_name: string;
 	/** headsign of the vehicle/line */
 	headsign: string;
+	/** the current delay of this vehicle and its uncertainty, if known */
+	delay?: [number, number | undefined];
 };
 
 /** a transit line */
@@ -344,6 +348,8 @@ export type StopSchedule = {
 	departure: string;
 	/** vehicle identifier serving this stop, if known */
 	vehicle?: string;
+	/** this stop's delay and its uncertainty in seconds, if known */
+	delay?: [number, number | undefined];
 };
 
 /** arrival and departure times of stops */
@@ -363,6 +369,8 @@ export type LineSchedule = {
 	departure: string;
 	/** transit vehicle serving this stop, if known */
 	vehicle?: string;
+	/** this stop's delay and its uncertainty in seconds, if known */
+	delay?: [number, number | undefined];
 };
 
 /** arrival and departure times of lines */

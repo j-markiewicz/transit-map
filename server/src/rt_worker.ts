@@ -151,9 +151,13 @@ async function fetch_and_parse_realtime(
 			const lat = entity.vehicle.position?.latitude;
 			const lon = entity.vehicle.position?.longitude;
 			const hdg = entity.vehicle.position?.bearing ?? undefined;
+			const stop =
+				entity.vehicle.currentStopSequence ??
+				entity.vehicle.stopId ??
+				undefined;
 
 			if (vid !== undefined && lat !== undefined && lon !== undefined) {
-				positions.push({ id: vid, name, trip, ts, lat, lon, hdg });
+				positions.push({ id: vid, name, trip, ts, lat, lon, hdg, stop });
 			}
 		}
 	});
