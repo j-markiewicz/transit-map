@@ -52,7 +52,7 @@ export default function Overview({ system }: { system: string }) {
 				});
 				break;
 		}
-	}, [tab]);
+	}, [system, tab]);
 
 	return (
 		<>
