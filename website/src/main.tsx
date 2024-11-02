@@ -21,7 +21,7 @@ function Main() {
 				<Route path="/new">
 					<Edit />
 				</Route>
-				<Route path="/:system/edit">
+				<Route path="/edit/:system">
 					{({ system }) => <Edit system={system} />}
 				</Route>
 				<Route path="/:system" nest>

@@ -1,6 +1,12 @@
+import { navigate } from "wouter-preact/use-hash-location";
+import { Temporal } from "temporal-polyfill";
 import { VNode } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
+import back_icon from "../assets/back.svg";
+import edit_icon from "../assets/edit.svg";
+
+import Alert from "../components/alert.tsx";
 import Loading from "../components/loading.tsx";
 import Line from "../components/line.tsx";
 import LineGroup from "../components/line-group.tsx";
@@ -9,8 +15,6 @@ import StopGroup from "../components/stop-group.tsx";
 import { get_alerts, get_lines, get_stops, VehicleType } from "../api.ts";
 import { cmp } from "../util.ts";
 import style from "./overview.module.css";
-import Alert from "../components/alert.tsx";
-import { Temporal } from "temporal-polyfill";
 
 type Tab = "lines" | "stops" | "alerts";
 
@@ -56,7 +60,15 @@ export default function Overview({ system }: { system: string }) {
 
 	return (
 		<>
-			<h1 class={style.title}>{system}</h1>
+			<div class={style.header}>
+				<a class={style.back} onClick={() => navigate(`/`)}>
+					<img class={style.backicon} src={back_icon} alt="go back" />
+				</a>
+				<h1 class={style.title}>{system}</h1>
+				<a class={style.edit} onClick={() => navigate(`/edit/${system}`)}>
+					<img class={style.editicon} src={edit_icon} alt={`edit ${system}`} />
+				</a>
+			</div>
 
 			<div class={style.tabs}>
 				<a

@@ -1,0 +1,93 @@
+.wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 2.5rem;
+	margin: 2.5rem auto;
+	padding: 0 1rem;
+	max-width: 50rem;
+}
+
+.system {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+	gap: 1rem;
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	overflow-x: hidden;
+}
+
+.name {
+	flex-shrink: 1;
+	text-decoration: underline 0.15rem;
+	margin: 0;
+	overflow-x: scroll;
+	scrollbar-width: none;
+	text-wrap: nowrap;
+}
+
+.name:hover {
+	cursor: pointer;
+}
+
+.name h1 {
+	font-size: 2.25rem;
+	margin: 0;
+}
+
+.chips {
+	display: flex;
+	flex-direction: row;
+	gap: 1rem;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.chip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	background-color: var(--fg-color);
+	color: var(--bg-color);
+	height: 2rem;
+	border-radius: 1rem;
+	padding: 0.25rem 0.5rem;
+	margin: auto 0;
+}
+
+.emptychip {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	box-sizing: border-box;
+	height: 2rem;
+	border-radius: 1rem;
+	border: 0.25rem var(--fg-color) solid;
+	color: red;
+	padding: 0.25rem 0.5rem;
+	margin: auto 0;
+}
+
+.buttons {
+	display: flex;
+	gap: 1rem;
+	margin: 0 0 0 auto;
+}
+
+.buttonwrapper {
+	height: 2.5rem;
+	margin: 0;
+	padding: 0;
+}
+
+.button {
+	height: 2.5rem;
+	cursor: pointer;
+	margin: 0;
+}

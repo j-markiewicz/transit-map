@@ -1,5 +1,45 @@
+.header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 1rem;
+	margin: 1rem;
+	overflow-x: scroll;
+	overflow-y: hidden;
+	scrollbar-width: thin;
+	text-wrap: nowrap;
+}
+
+.back {
+	cursor: pointer;
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.backicon {
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.edit {
+	cursor: pointer;
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.editicon {
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
 .title {
 	text-align: center;
+	margin: 0 auto;
 }
 
 .tabs {

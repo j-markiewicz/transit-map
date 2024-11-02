@@ -10,6 +10,7 @@
 	--bg-grey: #f6f8fa;
 	--bg-color: #ffffff;
 	--link-color: #0969da;
+	--danger-color: #a40e26;
 
 	color: var(--fg-color);
 	background-color: var(--bg-color);
