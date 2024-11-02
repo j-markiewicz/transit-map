@@ -189,36 +189,40 @@ export type Line = {
 	shape: string[];
 };
 
-/** a single scheduled stop at a transit stop */
-export type StopSchedule = {
-	/** transit line stopping at this stop */
-	line: string;
-	/** the line's name */
-	name: string;
-	/** the line's headsign */
-	headsign: string;
-	/** arrival time */
-	arrival: string;
-	/** departure time */
-	departure: string;
-	/** vehicle identifier serving this stop, if known */
-	vehicle?: string;
-	/** this stop's delay and its uncertainty in seconds, if known */
-	delay?: [number, number | undefined];
+/** information about a stop and its schedule */
+export type StopSchedule = Stop & {
+	schedule: {
+		/** transit line stopping at this stop */
+		line: string;
+		/** the line's name */
+		name: string;
+		/** the line's headsign */
+		headsign: string;
+		/** arrival time */
+		arrival: string;
+		/** departure time */
+		departure: string;
+		/** vehicle identifier serving this stop, if known */
+		vehicle?: string;
+		/** this stop's delay and its uncertainty in seconds, if known */
+		delay?: [number, number | undefined];
+	}[];
 };
 
-/** a single scheduled stop by a transit line */
-export type LineSchedule = {
-	/** stop identifier */
-	stop: string;
-	/** user-facing stop name */
-	stop_name: string;
-	/** arrival time */
-	arrival: string;
-	/** departure time */
-	departure: string;
-	/** transit vehicle serving this stop, if known */
-	vehicle?: string;
-	/** this stop's delay and its uncertainty in seconds, if known */
-	delay?: [number, number | undefined];
+/** information about a line and its schedule */
+export type LineSchedule = Line & {
+	schedule: {
+		/** stop identifier */
+		stop: string;
+		/** user-facing stop name */
+		stop_name: string;
+		/** arrival time */
+		arrival: string;
+		/** departure time */
+		departure: string;
+		/** transit vehicle serving this stop, if known */
+		vehicle?: string;
+		/** this stop's delay and its uncertainty in seconds, if known */
+		delay?: [number, number | undefined];
+	}[];
 };

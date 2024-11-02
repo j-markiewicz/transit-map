@@ -149,7 +149,7 @@ export default class Data {
 	public get_stop_schedule(
 		system: string,
 		stop: string
-	): Promise<StopSchedule[] | undefined> | undefined {
+	): Promise<StopSchedule | undefined> | undefined {
 		const stop_schedules = this.systems[system]?.stop_schedules;
 
 		if (stop_schedules !== undefined) {
@@ -165,7 +165,7 @@ export default class Data {
 	public get_line_schedule(
 		system: string,
 		line: string
-	): Promise<LineSchedule[] | undefined> | undefined {
+	): Promise<LineSchedule | undefined> | undefined {
 		const line_schedules = this.systems[system]?.line_schedules;
 
 		if (line_schedules !== undefined) {
@@ -597,14 +597,19 @@ export default class Data {
 			}
 		}
 
-		const [trip_mappings, services, lines_arr] = await Promise.all([
+		const [trip_mappings, services, lines_arr, stops_arr] = await Promise.all([
 			this.get_trip_mappings(system),
 			this.get_services(system),
 			this.get_lines(system),
+			this.get_stops(system),
 		]);
 
 		const lines: { [line in string]?: Line } = Object.fromEntries(
 			lines_arr?.map((l) => [l.id, l]) ?? []
+		);
+
+		const stops: { [stop in string]?: Stop } = Object.fromEntries(
+			stops_arr?.map((s) => [s.id, s]) ?? []
 		);
 
 		const rt = await Promise.all(
@@ -644,12 +649,20 @@ export default class Data {
 		);
 
 		const stop_schedules: {
-			[stop in string]?: Lazy<StopSchedule[]>;
+			[stop in string]?: Lazy<StopSchedule>;
 		} = {};
 
 		for (const [stop, st] of Object.entries(gtfs_stop_times)) {
-			stop_schedules[stop] = new Lazy(() =>
-				(st as RawGtfs["stop_times"])
+			stop_schedules[stop] = new Lazy(() => ({
+				...(stops[stop] ?? {
+					id: stop,
+					name: "???",
+					types: [],
+					lat: 0,
+					lon: 0,
+					lines: [],
+				}),
+				schedule: (st as RawGtfs["stop_times"])
 					.flatMap((st) => {
 						const lid = line_id(st.trip, trip_mappings);
 						const line = lines[lid];
@@ -738,8 +751,8 @@ export default class Data {
 						...s,
 						arrival: s.arrival.toString(),
 						departure: s.departure.toString(),
-					}))
-			);
+					})),
+			}));
 		}
 
 		return stop_schedules;
@@ -758,10 +771,15 @@ export default class Data {
 			)
 		);
 
-		const [trip_mappings, services] = await Promise.all([
+		const [trip_mappings, services, lines_arr] = await Promise.all([
 			this.get_trip_mappings(system),
 			this.get_services(system),
+			this.get_lines(system),
 		]);
+
+		const lines: { [line in string]?: Line } = Object.fromEntries(
+			lines_arr?.map((l) => [l.id, l]) ?? []
+		);
 
 		const gtfs_stop_times: { [line in string]?: RawGtfs["stop_times"] } = {};
 		for (const st of gtfs.flatMap((data) => data.stop_times)) {
@@ -816,8 +834,16 @@ export default class Data {
 		const line_schedules: LineSchedules = {};
 
 		for (const [lid, st] of Object.entries(gtfs_stop_times)) {
-			line_schedules[lid] = new Lazy(() =>
-				(st as RawGtfs["stop_times"])
+			line_schedules[lid] = new Lazy(() => ({
+				...(lines[lid] ?? {
+					id: lid,
+					name: "???",
+					headsign: "",
+					type: VehicleType.Other,
+					shape: [],
+					stops: [],
+				}),
+				schedule: (st as RawGtfs["stop_times"])
 					.flatMap((st) => {
 						const arrival_time = time(st.arrival);
 						const departure_time = time(st.departure);
@@ -902,8 +928,8 @@ export default class Data {
 						...s,
 						arrival: s.arrival.toString(),
 						departure: s.departure.toString(),
-					}))
-			);
+					})),
+			}));
 		}
 
 		return line_schedules;
