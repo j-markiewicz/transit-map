@@ -49,10 +49,7 @@ export class Lazy<T> {
 }
 
 export type LatLon = [number, number];
-export type TimeInterval =
-	| [undefined, number]
-	| [number, undefined]
-	| [number, number];
+export type TimeInterval = [null, number] | [number, null] | [number, number];
 
 export type RawGtfs = {
 	/** timezone used in this dataset, parsed from agency.txt */

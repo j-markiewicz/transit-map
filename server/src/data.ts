@@ -256,7 +256,7 @@ export default class Data {
 			time:
 				alert.start === undefined && alert.end === undefined
 					? undefined
-					: ([alert.start, alert.end] as TimeInterval),
+					: ([alert.start ?? null, alert.end ?? null] as TimeInterval),
 		}));
 	}
 

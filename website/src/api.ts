@@ -87,10 +87,7 @@ export enum VehicleType {
 }
 
 export type LatLon = [number, number];
-export type TimeInterval =
-	| [undefined, number]
-	| [number, undefined]
-	| [number, number];
+export type TimeInterval = [null, number] | [number, null] | [number, number];
 
 /** basic information about a transit system */
 export type BasicSystemInfo = {

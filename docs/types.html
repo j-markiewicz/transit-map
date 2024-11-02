@@ -363,7 +363,7 @@
 				<p>
 					A period of time with an optional start and an optional end timestamp.
 					At least one of <code>start</code> or <code>end</code> must be
-					defined; both fields can not be <code>undefined</code> simultaneously.
+					defined; both fields can not be <code>null</code> simultaneously.
 				</p>
 
 				<b>Type: Array (of length 2)</b>
@@ -371,14 +371,14 @@
 				<h3>Members:</h3>
 				<ol start="0">
 					<li>
-						<code>number</code> or <code>undefined</code> - The timestamp of the
-						start of the time period (if <code>undefined</code>, the time
-						interval starts "forever ago")
+						<code>number</code> or <code>null</code> - The timestamp of the
+						start of the time period (if <code>null</code>, the time interval
+						starts "forever ago" or the start time is unknown)
 					</li>
 					<li>
-						<code>number</code> or <code>undefined</code> - The timestamp of the
-						end of the time period (if <code>undefined</code>, the time interval
-						never ends)
+						<code>number</code> or <code>null</code> - The timestamp of the end
+						of the time period (if <code>null</code>, the time interval never
+						ends or the ending time is unknown)
 					</li>
 				</ol>
 			</section>
