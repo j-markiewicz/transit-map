@@ -4,21 +4,26 @@
 	grid-template-rows: 1fr;
 	grid-template-areas: "sidebar map";
 	width: 100vw;
-	height: 100vh;
 	width: 100dvw;
+	height: 100vh;
 	height: 100dvh;
 }
 
 .sidebar {
 	grid-area: sidebar;
-	min-width: 20ch;
-	max-width: 80ch;
+	width: 25vw;
+	width: 25dvw;
+	overflow-y: scroll;
+	z-index: 1000000;
+	box-shadow: 0 0 1rem #00000075;
 }
 
 .map {
 	grid-area: map;
 	cursor: default;
 	outline: none;
+	width: 75vw;
+	width: 75dvw;
 }
 
 .map:active {

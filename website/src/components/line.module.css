@@ -1,0 +1,33 @@
+.line {
+	cursor: pointer;
+	margin: 0 0.5rem 0 1rem;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+}
+
+.line:hover {
+	background-color: var(--bg-grey);
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1rem;
+}
+
+.name {
+	font-weight: bold;
+	overflow-wrap: anywhere;
+	word-break: normal;
+}
+
+.stops {
+	text-wrap: nowrap;
+	text-overflow: clip;
+	overflow: scroll;
+	height: 1.5rem;
+	margin: 0.5rem 0.5rem 0 0;
+	scrollbar-width: none;
+	mask-image: linear-gradient(90deg, #000000ff, #000000ff 85%, #00000000);
+}

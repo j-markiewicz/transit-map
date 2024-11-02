@@ -1,5 +1,5 @@
 // import style from "./menu.module.css";
 
-export function Menu() {
+export default function Menu() {
 	return <>TODO</>;
 }

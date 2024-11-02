@@ -2,43 +2,14 @@ import { Component, ComponentChild, ComponentChildren } from "preact";
 import { navigate } from "wouter-preact/use-hash-location";
 import L from "leaflet";
 
-import railway_stop_icon from "../assets/icons/railway-stop.svg";
-import coach_stop_icon from "../assets/icons/coach-stop.svg";
-import metro_stop_icon from "../assets/icons/metro-stop.svg";
-import monorail_stop_icon from "../assets/icons/monorail-stop.svg";
-import bus_stop_icon from "../assets/icons/bus-stop.svg";
-import trolleybus_stop_icon from "../assets/icons/trolleybus-stop.svg";
-import tram_stop_icon from "../assets/icons/tram-stop.svg";
-import water_stop_icon from "../assets/icons/water-stop.svg";
-import air_stop_icon from "../assets/icons/air-stop.svg";
-import ferry_stop_icon from "../assets/icons/ferry-stop.svg";
-import aerial_stop_icon from "../assets/icons/aerial-stop.svg";
-import funicular_stop_icon from "../assets/icons/funicular-stop.svg";
-import taxi_stop_icon from "../assets/icons/taxi-stop.svg";
-import other_stop_icon from "../assets/icons/other-stop.svg";
-
-import railway_vehicle_icon from "../assets/icons/railway-vehicle.svg";
-import coach_vehicle_icon from "../assets/icons/coach-vehicle.svg";
-import metro_vehicle_icon from "../assets/icons/metro-vehicle.svg";
-import monorail_vehicle_icon from "../assets/icons/monorail-vehicle.svg";
-import bus_vehicle_icon from "../assets/icons/bus-vehicle.svg";
-import trolleybus_vehicle_icon from "../assets/icons/trolleybus-vehicle.svg";
-import tram_vehicle_icon from "../assets/icons/tram-vehicle.svg";
-import water_vehicle_icon from "../assets/icons/water-vehicle.svg";
-import air_vehicle_icon from "../assets/icons/air-vehicle.svg";
-import ferry_vehicle_icon from "../assets/icons/ferry-vehicle.svg";
-import aerial_vehicle_icon from "../assets/icons/aerial-vehicle.svg";
-import funicular_vehicle_icon from "../assets/icons/funicular-vehicle.svg";
-import taxi_vehicle_icon from "../assets/icons/taxi-vehicle.svg";
-import other_vehicle_icon from "../assets/icons/other-vehicle.svg";
-
 import layers from "../layers.json";
 import "leaflet/dist/leaflet.css";
 import style from "./map.module.css";
 import "./map.css";
 import { get_vehicles, get_stops, get_info, VehicleType } from "../api.ts";
+import { get_stop_icon, get_vehicle_icon } from "../util.ts";
 
-export class Map extends Component<{
+export default class Map extends Component<{
 	children: ComponentChildren;
 	system: string;
 }> {
@@ -156,7 +127,7 @@ export class Map extends Component<{
 								.join(", ")})`,
 							draggable: false,
 							icon: L.icon({
-								iconUrl: stop_icon(stop.types[0] ?? VehicleType.Other),
+								iconUrl: get_stop_icon(stop.types[0] ?? VehicleType.Other),
 								iconSize: [zoom * 48, zoom * 64],
 							}),
 						})
@@ -196,7 +167,7 @@ export class Map extends Component<{
 							title: `${vehicle.line_name} ${vehicle.headsign} (${vehicle.name})`,
 							draggable: false,
 							icon: L.icon({
-								iconUrl: vehicle_icon(vehicle.type),
+								iconUrl: get_vehicle_icon(vehicle.type),
 								iconSize: [zoom * 64, zoom * 64],
 							}),
 						})
@@ -245,7 +216,7 @@ export class Map extends Component<{
 										title: `${vehicle.line_name} ${vehicle.headsign} (${vehicle.name})`,
 										draggable: false,
 										icon: L.icon({
-											iconUrl: vehicle_icon(vehicle.type),
+											iconUrl: get_vehicle_icon(vehicle.type),
 											iconSize: [zoom * 64, zoom * 64],
 										}),
 									})
@@ -260,71 +231,5 @@ export class Map extends Component<{
 				);
 			}
 		});
-	}
-}
-
-function stop_icon(type: VehicleType): string {
-	switch (type) {
-		case VehicleType.Railway:
-			return railway_stop_icon;
-		case VehicleType.Coach:
-			return coach_stop_icon;
-		case VehicleType.Metro:
-			return metro_stop_icon;
-		case VehicleType.Monorail:
-			return monorail_stop_icon;
-		case VehicleType.Bus:
-			return bus_stop_icon;
-		case VehicleType.Trolleybus:
-			return trolleybus_stop_icon;
-		case VehicleType.Tram:
-			return tram_stop_icon;
-		case VehicleType.Water:
-			return water_stop_icon;
-		case VehicleType.Air:
-			return air_stop_icon;
-		case VehicleType.Ferry:
-			return ferry_stop_icon;
-		case VehicleType.Aerial:
-			return aerial_stop_icon;
-		case VehicleType.Funicular:
-			return funicular_stop_icon;
-		case VehicleType.Taxi:
-			return taxi_stop_icon;
-		case VehicleType.Other:
-			return other_stop_icon;
-	}
-}
-
-function vehicle_icon(type: VehicleType): string {
-	switch (type) {
-		case VehicleType.Railway:
-			return railway_vehicle_icon;
-		case VehicleType.Coach:
-			return coach_vehicle_icon;
-		case VehicleType.Metro:
-			return metro_vehicle_icon;
-		case VehicleType.Monorail:
-			return monorail_vehicle_icon;
-		case VehicleType.Bus:
-			return bus_vehicle_icon;
-		case VehicleType.Trolleybus:
-			return trolleybus_vehicle_icon;
-		case VehicleType.Tram:
-			return tram_vehicle_icon;
-		case VehicleType.Water:
-			return water_vehicle_icon;
-		case VehicleType.Air:
-			return air_vehicle_icon;
-		case VehicleType.Ferry:
-			return ferry_vehicle_icon;
-		case VehicleType.Aerial:
-			return aerial_vehicle_icon;
-		case VehicleType.Funicular:
-			return funicular_vehicle_icon;
-		case VehicleType.Taxi:
-			return taxi_vehicle_icon;
-		case VehicleType.Other:
-			return other_vehicle_icon;
 	}
 }

@@ -1,0 +1,48 @@
+.alert {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	margin: 0.25rem 0.5rem;
+	padding: 0.25rem 0.5rem 0.5rem 0.5rem;
+	border-radius: 0.5rem;
+	gap: 0.5rem;
+}
+
+.alert:hover {
+	cursor: pointer;
+	background-color: var(--bg-grey);
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	align-self: stretch;
+	justify-content: space-between;
+}
+
+.title {
+	font-weight: bold;
+	overflow-wrap: anywhere;
+	word-break: normal;
+	margin: 0;
+}
+
+.arrow {
+	margin-left: auto;
+	height: 2rem;
+}
+
+.longtext {
+	overflow-wrap: anywhere;
+	word-break: normal;
+	margin: 0;
+}
+
+.shorttext {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+	max-width: 100%;
+	margin: 0;
+}

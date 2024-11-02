@@ -1,0 +1,56 @@
+.stop {
+	margin: 0 0.5rem 0.5rem 1rem;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+}
+
+.stop:hover {
+	background-color: var(--bg-grey);
+}
+
+.name {
+	cursor: pointer;
+	font-weight: bold;
+	margin: 0 0 1rem 0;
+	overflow-wrap: anywhere;
+	word-break: normal;
+}
+
+.lines {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.line {
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	background-color: var(--bg-color);
+	padding: 0.2rem 0.5rem 0.2rem 0.2rem;
+	border: 1px var(--fg-color) solid;
+	border-radius: 1rem;
+	box-sizing: border-box;
+	max-width: 100%;
+}
+
+.line:hover {
+	cursor: pointer;
+	background-color: var(--bg-grey);
+}
+
+.linetype {
+	height: 1.5rem;
+}
+
+.linename {
+	font-weight: bold;
+}
+
+.lineheadsign {
+	padding-left: 1ch;
+	text-wrap: nowrap;
+	text-overflow: ellipsis;
+	overflow-x: scroll;
+	scrollbar-width: none;
+}

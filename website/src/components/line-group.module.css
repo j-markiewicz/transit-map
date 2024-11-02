@@ -1,0 +1,29 @@
+.group {
+	cursor: pointer;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1rem;
+	margin: 0 0.5rem;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+}
+
+.group:hover {
+	background-color: var(--bg-grey);
+}
+
+.icon {
+	height: 2rem;
+}
+
+.name {
+	font-weight: bold;
+	overflow-wrap: anywhere;
+	word-break: normal;
+}
+
+.arrow {
+	margin-left: auto;
+	height: 2rem;
+}
