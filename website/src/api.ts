@@ -3,7 +3,7 @@ import { LineString } from "geojson";
 const url = (path: string) => new URL(path, import.meta.env.VITE_MAP_API_BASE);
 
 export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
-	return fetch(url(""))
+	return fetch(url(""), { priority: "high" })
 		.then((res) => res.json())
 		.catch(() => undefined);
 }
@@ -11,7 +11,7 @@ export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
 export async function get_info(
 	system: string
 ): Promise<BasicSystemInfo | undefined> {
-	return fetch(url(`${system}`))
+	return fetch(url(`${system}`), { priority: "high" })
 		.then((res) => res.json())
 		.catch(() => undefined);
 }
@@ -64,7 +64,7 @@ export async function get_shape(
 	system: string,
 	shape: string
 ): Promise<LineString | undefined> {
-	return fetch(url(`${system}/shape/${shape}`))
+	return fetch(url(`${system}/shape/${shape}`), { priority: "low" })
 		.then((res) => res.json())
 		.catch(() => undefined);
 }
