@@ -7,13 +7,26 @@ import refresh_icon from "../assets/refresh.svg";
 
 import Loading from "../components/loading.tsx";
 import { get_stop_schedule, StopSchedule } from "../api.ts";
-import { get_type_name, get_vehicle_icon } from "../util.ts";
+import { cmp, get_type_name, get_vehicle_icon } from "../util.ts";
 import style from "./stop.module.css";
 
 export default function Stop({ system, id }: { system: string; id: string }) {
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
 	const [schedule, setSchedule] = useState<StopSchedule | "error" | null>(null);
+	const [filter, setFilterInner] = useState<string | null>(null);
+	const setFilter = (line: string) => {
+		setTimeout(() => {
+			document
+				.getElementById(style.now)
+				?.previousElementSibling?.previousElementSibling?.scrollIntoView({
+					behavior: "instant",
+					block: "start",
+				});
+		}, 50);
+
+		setFilterInner((f) => (f === line ? null : line));
+	};
 
 	useEffect(() => {
 		setSchedule(null);
@@ -30,7 +43,7 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 							behavior: "smooth",
 							block: "start",
 						});
-				}, 100);
+				}, 50);
 			}
 		});
 
@@ -77,11 +90,33 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 				</a>
 			</div>
 
+			{schedule === null ? null : (
+				<div class={style.lines}>
+					{[...new Set(schedule.lines.map((l) => l.name))]
+						.sort((a, b) => cmp([a], [b]))
+						.map((l) => (
+							<span
+								class={`${style.line} ${
+									filter === l
+										? style.selectedline
+										: filter !== null
+										? style.nonselectedline
+										: ""
+								}`}
+								onClick={() => setFilter(l)}
+							>
+								{l}
+							</span>
+						))}
+				</div>
+			)}
+
 			<div class={style.content}>
 				{schedule === null ? (
 					<Loading />
 				) : (
 					schedule.schedule
+						.filter((s) => filter === null || filter === s.name)
 						.map((s) => ({
 							...s,
 							arrival: Temporal.ZonedDateTime.from(s.arrival),
