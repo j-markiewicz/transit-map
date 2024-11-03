@@ -5,7 +5,9 @@ const url = (path: string) => new URL(path, import.meta.env.VITE_MAP_API_BASE);
 export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
 	return fetch(url(""), { priority: "high" })
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching all info: ${err}`);
+		});
 }
 
 export async function get_info(
@@ -13,13 +15,17 @@ export async function get_info(
 ): Promise<BasicSystemInfo | undefined> {
 	return fetch(url(`${system}`), { priority: "high" })
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching info: ${err}`);
+		});
 }
 
 export async function get_alerts(system: string): Promise<Alert[] | undefined> {
 	return fetch(url(`${system}/alerts`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching alerts: ${err}`);
+		});
 }
 
 export async function get_vehicles(
@@ -27,19 +33,25 @@ export async function get_vehicles(
 ): Promise<Vehicle[] | undefined> {
 	return fetch(url(`${system}/vehicles`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching vehicles: ${err}`);
+		});
 }
 
 export async function get_stops(system: string): Promise<Stop[] | undefined> {
 	return fetch(url(`${system}/stops`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching stops: ${err}`);
+		});
 }
 
 export async function get_lines(system: string): Promise<Line[] | undefined> {
 	return fetch(url(`${system}/lines`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching lines: ${err}`);
+		});
 }
 
 export async function get_stop_schedule(
@@ -48,7 +60,9 @@ export async function get_stop_schedule(
 ): Promise<StopSchedule | undefined> {
 	return fetch(url(`${system}/stop_schedule/${stop}`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching stop schedule: ${err}`);
+		});
 }
 
 export async function get_line_schedule(
@@ -57,7 +71,9 @@ export async function get_line_schedule(
 ): Promise<LineSchedule | undefined> {
 	return fetch(url(`${system}/line_schedule/${line}`))
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching line schedule: ${err}`);
+		});
 }
 
 export async function get_shape(
@@ -66,7 +82,9 @@ export async function get_shape(
 ): Promise<LineString | undefined> {
 	return fetch(url(`${system}/shape/${shape}`), { priority: "low" })
 		.then((res) => res.json())
-		.catch(() => undefined);
+		.catch((err) => {
+			console.error(`API error fetching shape: ${err}`);
+		});
 }
 
 export enum VehicleType {
