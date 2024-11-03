@@ -1,0 +1,63 @@
+.stop {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 0 0.5rem;
+	padding: 0.5rem;
+	border-radius: 1rem;
+}
+
+.stop:hover {
+	cursor: pointer;
+	background-color: var(--bg-grey);
+}
+
+.past {
+	color: var(--fg-grey);
+}
+
+.icon {
+	height: 1.5rem;
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	margin: 0;
+	gap: 1ch;
+}
+
+.name {
+	font-weight: bold;
+	margin: 0;
+}
+
+.headsign {
+	margin: 0;
+	overflow-x: scroll;
+	scrollbar-width: none;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+}
+
+.times {
+	display: flex;
+	flex-direction: row;
+	gap: 1ch;
+	margin: 0;
+	overflow-x: scroll;
+	scrollbar-width: none;
+	text-wrap: nowrap;
+}
+
+.arrival {
+	margin: 0;
+}
+
+.departure {
+	margin: 0;
+}
+
+.delay {
+	margin: 0 0 0 auto;
+}

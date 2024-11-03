@@ -6,8 +6,9 @@ import back_icon from "../assets/back.svg";
 import refresh_icon from "../assets/refresh.svg";
 
 import Loading from "../components/loading.tsx";
+import ScheduledStop from "../components/scheduled-stop.tsx";
 import { get_stop_schedule, StopSchedule } from "../api.ts";
-import { cmp, get_type_name, get_vehicle_icon } from "../util.ts";
+import { cmp } from "../util.ts";
 import style from "./stop.module.css";
 
 export default function Stop({ system, id }: { system: string; id: string }) {
@@ -142,45 +143,11 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 									<hr id={style.now} />
 								) : null}
 
-								<div
-									key={`${s.line}-${s.arrival.toString()}`}
-									class={`${style.schedule} ${
-										s.arrival.since(now).sign === -1 ? style.past : style.future
-									}`}
+								<ScheduledStop
+									now={now}
+									stop={s}
 									onClick={() => navigate(`/${system}/line/${s.line}`)}
-								>
-									<p class={style.scheduleheader}>
-										<img
-											class={style.scheduleicon}
-											src={get_vehicle_icon(s.type)}
-											alt={`${get_type_name(s.type)}`}
-										/>
-										<span class={style.schedulename}>{s.name}</span>
-										<span class={style.scheduleheadsign}>{s.headsign}</span>
-									</p>
-									<p class={style.times}>
-										{s.arrival.equals(s.departure) ? null : (
-											<>
-												<span class={style.arrival}>
-													{s.arrival.toPlainTime().toLocaleString()}
-												</span>
-												<span>-</span>
-											</>
-										)}
-										<span class={style.departure}>
-											{s.departure.toPlainTime().toLocaleString()}
-										</span>
-										<span class={style.delay}>
-											{s.delay?.[0] === undefined
-												? "scheduled"
-												: s.delay?.[0] === 0
-												? "on time"
-												: `${Math.abs(s.delay?.[0] / 60).toFixed(1)} min ${
-														s.delay?.[0] >= 0 ? "late" : "early"
-												  }`}
-										</span>
-									</p>
-								</div>
+								/>
 							</>
 						))
 				)}
