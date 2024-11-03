@@ -29,10 +29,13 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 	};
 
 	useEffect(() => {
+		let valid = true;
 		setSchedule(null);
 		get_stop_schedule(system, id).then((s) => {
 			if (s === undefined) {
 				setSchedule("error");
+				return;
+			} else if (!valid) {
 				return;
 			} else {
 				setSchedule(s);
@@ -56,6 +59,7 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 		}, 10000);
 
 		return () => {
+			valid = false;
 			clearInterval(int);
 		};
 	}, [system, id, refresh_counter]);
