@@ -13,7 +13,7 @@
 	grid-area: sidebar;
 	width: 25vw;
 	width: 25dvw;
-	overflow-y: scroll;
+	overflow: hidden;
 	z-index: 1000000;
 	box-shadow: 0 0 1rem #00000075;
 }

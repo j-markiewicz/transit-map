@@ -1,0 +1,140 @@
+.wrapper {
+	max-height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.header {
+	display: flex;
+	flex-direction: row;
+	flex-shrink: 0;
+	background-color: var(--bg-color);
+	align-items: center;
+	justify-content: flex-start;
+	gap: 1rem;
+	padding: 1rem;
+	margin: 0;
+	overflow-x: scroll;
+	overflow-y: hidden;
+	scrollbar-width: thin;
+	text-wrap: nowrap;
+	z-index: 1000001;
+}
+
+.back {
+	cursor: pointer;
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.backicon {
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.refresh {
+	cursor: pointer;
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.refreshicon {
+	height: 2rem;
+	margin: 0;
+	padding: 0;
+}
+
+.name {
+	text-align: center;
+	margin: 0 auto;
+}
+
+.content {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	overflow-y: scroll;
+	scrollbar-width: thin;
+}
+
+.date {
+	margin: 0 0.5rem;
+	padding: 0.5rem;
+	font-weight: bold;
+	position: sticky;
+	top: -1rem;
+	background-color: var(--bg-color);
+	z-index: 1000002;
+	box-shadow: 0 0 1rem 1rem var(--bg-color);
+}
+
+.schedule {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	margin: 0 0.5rem;
+	padding: 0.5rem;
+	border-radius: 1rem;
+}
+
+.schedule:hover {
+	cursor: pointer;
+	background-color: var(--bg-grey);
+}
+
+#now {
+	margin: 0 1rem;
+}
+
+.schedule.past {
+	color: var(--fg-grey);
+}
+
+.scheduleicon {
+	height: 1.5rem;
+}
+
+.scheduleheader {
+	display: flex;
+	flex-direction: row;
+	margin: 0;
+	gap: 1ch;
+}
+
+.schedulename {
+	font-weight: bold;
+	margin: 0;
+}
+
+.scheduleheadsign {
+	margin: 0;
+	overflow-x: scroll;
+	scrollbar-width: none;
+	text-overflow: ellipsis;
+	text-wrap: nowrap;
+}
+
+.times {
+	display: flex;
+	flex-direction: row;
+	gap: 1ch;
+	margin: 0;
+	overflow-x: scroll;
+	scrollbar-width: none;
+	text-wrap: nowrap;
+}
+
+.arrival {
+	margin: 0;
+}
+
+.departure {
+	margin: 0;
+}
+
+.delay {
+	margin: 0 0 0 auto;
+}
