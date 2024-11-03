@@ -735,6 +735,7 @@ export default class Data {
 										line: lid,
 										name: line?.name ?? "???",
 										headsign: line?.headsign ?? "",
+										type: line?.type ?? VehicleType.Other,
 										arrival,
 										departure,
 										vehicle: rt_updates[lid]?.vehicle,

@@ -198,6 +198,8 @@ export type StopSchedule = Stop & {
 		name: string;
 		/** the line's headsign */
 		headsign: string;
+		/** the line's type */
+		type: VehicleType;
 		/** arrival time */
 		arrival: string;
 		/** departure time */
