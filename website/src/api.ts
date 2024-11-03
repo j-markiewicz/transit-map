@@ -191,6 +191,7 @@ export type Line = {
 
 /** information about a stop and its schedule */
 export type StopSchedule = Stop & {
+	/** this stop's scheduled stops */
 	schedule: {
 		/** transit line stopping at this stop */
 		line: string;
@@ -213,6 +214,7 @@ export type StopSchedule = Stop & {
 
 /** information about a line and its schedule */
 export type LineSchedule = Line & {
+	/** this line's scheduled stops */
 	schedule: {
 		/** stop identifier */
 		stop: string;
