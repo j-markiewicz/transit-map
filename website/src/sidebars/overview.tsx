@@ -97,7 +97,9 @@ export default function Overview({ system }: { system: string }) {
 								type="text"
 								class={style.search}
 								placeholder="Search"
-								onInput={(ev) => setSearch(ev.currentTarget.value)}
+								onInput={(ev) =>
+									setSearch(ev.currentTarget.value.toLowerCase())
+								}
 							/>
 
 							{content(search)}
@@ -145,7 +147,7 @@ async function lines(
 	return (search: string) => (
 		<>
 			{[...groups.values()]
-				.filter((v) => v.group.name.includes(search))
+				.filter((v) => v.group.name.toLowerCase().includes(search))
 				.sort((a, b) => cmp([a.group.name], [b.group.name]))
 				.map(({ group, lines }) => (
 					<LineGroup key={group.name} name={group.name} type={group.type}>
@@ -186,7 +188,7 @@ async function stops(
 	return (search: string) => (
 		<>
 			{[...groups.entries()]
-				.filter(([k, _]) => k.includes(search))
+				.filter(([k, _]) => k.toLowerCase().includes(search))
 				.sort(([a, _a], [b, _b]) => cmp([a], [b]))
 				.map(([name, stops]) => (
 					<StopGroup
