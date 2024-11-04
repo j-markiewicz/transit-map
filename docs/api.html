@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>transit-map API Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				<code>transit-map</code> API Documentation
+			</h1>
+
+			<p>
+				The <code>transit-map</code> API is made up of two parts - the Data API
+				for transit data and the Config API for configuring data sources for the
+				Data API. All data is transferred in JSON format, errors are reported in
+				plain text. API endpoints and authentication tokens are described below.
+			</p>
+
+			<h2>Data API endpoints</h2>
+
+			<p>
+				The following table describes API endpoints which make transit data
+				available. All of them support the <code>GET</code> method (to get the
+				data described below) and the <code>OPTIONS</code> method (for CORS
+				preflight requests). No authorization is required for these endpoints.
+			</p>
+
+			<table class="data-api-endpoints">
+				<thead>
+					<tr>
+						<th scope="col">URL path</th>
+						<th scope="col">Return type</th>
+						<th scope="col">Description</th>
+					</tr>
+				</thead>
+				<tr>
+					<td>
+						<a onclick="try_api('')"><code>/</code></a>
+					</td>
+					<td>
+						<a href="types.html#basic-system-info"
+							><code>BasicSystemInfo[]</code></a
+						>
+					</td>
+					<td>
+						Ⓢ* Basic information about all transit systems, including their
+						names, locations, and number of GTFS Schedule and GTFS Realtime data
+						sources, stops, and lines.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków')"><code>/:system</code></a>
+					</td>
+					<td>
+						<a href="types.html#basic-system-info"
+							><code>BasicSystemInfo</code></a
+						>
+					</td>
+					<td>
+						Ⓢ* Basic information about the transit system
+						<code>:system</code>.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/alerts')"
+							><code>/:system/alerts</code></a
+						>
+					</td>
+					<td>
+						<a href="types.html#alert"><code>Alert[]</code></a>
+					</td>
+					<td>
+						Ⓡ Any active or scheduled alerts about the transit system
+						<code>:system</code>.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/vehicles')"
+							><code>/:system/vehicles</code></a
+						>
+					</td>
+					<td>
+						<a href="types.html#vehicle"><code>Vehicle[]</code></a>
+					</td>
+					<td>
+						Ⓡ Real-time location information about all transit vehicles in
+						<code>:system</code> for which this data is available.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/stops')"><code>/:system/stops</code></a>
+					</td>
+					<td>
+						<a href="types.html#stop"><code>Stop[]</code></a>
+					</td>
+					<td>
+						Ⓢ All transit stops in <code>:system</code>. Multiple stops may
+						share the same name (but not id), for example if they are adjacent
+						stops on opposite sides of the street.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/lines')"><code>/:system/lines</code></a>
+					</td>
+					<td>
+						<a href="types.html#line"><code>Line[]</code></a>
+					</td>
+					<td>
+						Ⓢ All transit lines in <code>:system</code>. A transit line is
+						defined by a name (e.g. <em>218</em>), headsign (e.g.
+						<em>Bronowice Małe</em>), and a sequence of stops. Often, transit
+						routes operate with the same name in opposite directions, or even
+						with the same name and headsign, but with different routings - in
+						these cases each of these routings would be considered a different
+						line. In GTFS terms, a <em>line</em> is somewhere in between a
+						<em>route</em> and a <em>trip</em>.
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/stop_schedule/a-stop_170_22202')"
+							><code>/:system/stop_schedule/:stop</code></a
+						>
+					</td>
+					<td>
+						<a href="types.html#stop-schedule"><code>StopSchedule</code></a>
+					</td>
+					<td>Ⓡ Schedule information for transit stop <code>:stop</code>.</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/line_schedule/218-azli6WxWL3YiWsqf')"
+							><code>/:system/line_schedule/:line</code></a
+						>
+					</td>
+					<td>
+						<a href="types.html#line-schedule"><code>LineSchedule</code></a>
+					</td>
+					<td>Ⓡ Schedule information for transit line <code>:line</code>.</td>
+				</tr>
+				<tr>
+					<td>
+						<a onclick="try_api('Kraków/shape/a-shape_3440')"
+							><code>/:system/shape/:shape</code></a
+						>
+					</td>
+					<td>
+						<a href="https://www.rfc-editor.org/rfc/rfc7946#section-3.1.4"
+							><code>LineString</code></a
+						>
+					</td>
+					<td>
+						Ⓢ A GeoJSON description of the geographic shape
+						<code>:shape</code> of a transit line.
+					</td>
+				</tr>
+			</table>
+
+			<p>
+				Endpoints marked with Ⓡ are based (at least partially) on GTFS Realtime
+				data, and should therefore be re-requested every 5-30 seconds. Because
+				the API server caches both the raw data (from GTFS feeds) and the
+				computed data (effectively the API response), re-requests should use
+				conditional HTTP requests to avoid redownloading the data if it hasn't
+				actually changed since the last request (<code>fetch()</code> in
+				browsers should do this automatically).
+			</p>
+			<p>
+				Endpoints marked with Ⓢ are based on GTFS Schedule data only, and
+				therefore their data doesn't change often. It should be safe to download
+				this data once on page load and keep using it for the remainder of the
+				session.
+			</p>
+			<p>
+				The two endpoints marked with Ⓢ* are based mostly on server
+				configuration, but additionally return the number of stops and lines
+				based on GTFS Schedule data. This additional data is only returned if
+				immediately available, because downloading and parsing GFTS Schedule
+				data can take a while and the speed of these endpoints is important to
+				the performance of the <code>transit-map</code> website. If this
+				additional data is not immediately available, the API response is
+				returned without it, and the API server starts the process of getting
+				the information. If the additional data is important, these endpoints
+				can be repeatedly re-requested until a response contains the desired
+				information.
+			</p>
+
+			<h2>Config API endpoints</h2>
+
+			<p>
+				The following table describes API endpoints which make
+				<code>transit-map</code> transit system configuration available and
+				editable. API keys are required for these endpoints for
+				<code>POST</code> and <code>PUT</code> requests.
+			</p>
+
+			<table class="config-api-endpoints">
+				<thead>
+					<tr>
+						<th scope="col">Method</th>
+						<th scope="col">URL path</th>
+						<th scope="col">Request type</th>
+						<th scope="col">Return type</th>
+						<th scope="col">Description</th>
+					</tr>
+				</thead>
+				<tr>
+					<td>
+						<code>GET</code>
+					</td>
+					<td>
+						<a onclick="try_api('Kraków/config')"
+							><code>/:system/config</code></a
+						>
+					</td>
+					<td>-</td>
+					<td>
+						<a href="types.html#system-config-with-metadata"
+							><code>SystemConfigWithMetadata</code></a
+						>
+					</td>
+					<td>
+						Configuration for the transit system <code>:system</code> and
+						whether the requesting user can edit this configuration (always
+						<code>false</code> if no credentials were sent in the request)
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<code>PUT</code>
+					</td>
+					<td>
+						<code>/:system/config</code>
+					</td>
+					<td>
+						<a href="types.html#system-config"><code>SystemConfig</code></a>
+					</td>
+					<td>-</td>
+					<td>
+						Overwrite the configuration for the existing transit system
+						<code>:system</code>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<code>POST</code>
+					</td>
+					<td>
+						<code>/new</code>
+					</td>
+					<td>
+						<a href="types.html#system-config-with-name"
+							><code>SystemConfigWithName</code></a
+						>
+					</td>
+					<td>-</td>
+					<td>
+						Create a new transit system with the given configuration and name
+						(fails if a transit system with that name already exists)
+					</td>
+				</tr>
+			</table>
+
+			<h2>Authentication tokens</h2>
+
+			<p>Tokens are not yet issued.</p>
+
+			<h2>Try it out</h2>
+
+			<form id="try-api">
+				<label id="try-api-url-label" for="try-api-url">Path: </label>
+				<code id="try-api-url-wrapper"
+					>.../<input type="text" name="url" id="try-api-url" value=""
+				/></code>
+				<button id="try-api-button" type="submit">Try It!</button>
+
+				<label id="try-api-out-label" for="try-api-out">Result: </label>
+				<output id="try-api-out-wrapper"><pre id="try-api-out"></pre></output>
+			</form>
+		</main>
+
+		<script>
+			const API_URL_BASE = "https://transit-map.janm.dev/api/";
+
+			const form = document.getElementById("try-api");
+
+			form.onsubmit = (ev) => {
+				ev.preventDefault();
+
+				const output = document.getElementById("try-api-out");
+				output.textContent = "Loading ...";
+
+				const data = new FormData(form);
+				const url = new URL(data.get("url"), API_URL_BASE);
+
+				fetch(url, { mode: "cors" })
+					.then((res) => {
+						if (res.ok) {
+							return res.json();
+						} else {
+							return (async () => {
+								throw new Error(
+									`API call failed: ${res.status} ${
+										res.statusText
+									}\n${await res.text()}`
+								);
+							})();
+						}
+					})
+					.then(
+						(json) => (output.textContent = JSON.stringify(json, null, "\t"))
+					)
+					.catch((err) => (output.textContent = `Error:\n${err}`));
+			};
+
+			window.try_api = (url) => {
+				document.getElementById("try-api-url").value = url;
+				form.scrollIntoView();
+				form.requestSubmit();
+			};
+		</script>
+	</body>
+</html>
