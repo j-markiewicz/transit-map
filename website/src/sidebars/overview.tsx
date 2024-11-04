@@ -59,7 +59,7 @@ export default function Overview({ system }: { system: string }) {
 	}, [system, tab]);
 
 	return (
-		<>
+		<div class={style.wrapper}>
 			<div class={style.header}>
 				<a class={style.back} onClick={() => navigate(`/`)}>
 					<img class={style.backicon} src={back_icon} alt="go back" />
@@ -90,26 +90,20 @@ export default function Overview({ system }: { system: string }) {
 					Alerts
 				</a>
 
-				<div class={style.content}>
-					{typeof content === "function" ? (
-						<>
-							<input
-								type="text"
-								class={style.search}
-								placeholder="Search"
-								onInput={(ev) =>
-									setSearch(ev.currentTarget.value.toLowerCase())
-								}
-							/>
+				{typeof content === "function" ? (
+					<input
+						type="text"
+						class={style.search}
+						placeholder="Search"
+						onInput={(ev) => setSearch(ev.currentTarget.value.toLowerCase())}
+					/>
+				) : null}
 
-							{content(search)}
-						</>
-					) : (
-						content
-					)}
+				<div class={style.content}>
+					{typeof content === "function" ? content(search) : content}
 				</div>
 			</div>
-		</>
+		</div>
 	);
 }
 
