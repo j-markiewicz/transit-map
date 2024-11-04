@@ -53,7 +53,7 @@ export default class Data {
 	/** download and cache all gtfs schedule (non-realtime) data for all systems */
 	public precache() {
 		for (const system of Object.keys(this.systems)) {
-			for (const source of Object.keys(this.systems[system]?.raw_gtfs ?? {})) {
+			for (const source of Object.keys(this.systems[system]?.gtfs ?? {})) {
 				this.fetch_or_cached_gtfs(system, source);
 			}
 		}
@@ -81,8 +81,8 @@ export default class Data {
 		return (async () => ({
 			name: system,
 			location: sys.location,
-			gtfs_sources: Object.keys(sys.raw_gtfs).length,
-			rt_sources: Object.keys(sys.raw_realtime).length,
+			gtfs_sources: Object.keys(sys.gtfs).length,
+			rt_sources: Object.keys(sys.realtime).length,
 			lines: await Promise.race([
 				this.get_lines(system)?.then((l) => l.length),
 				short_wait,
@@ -92,6 +92,40 @@ export default class Data {
 				short_wait,
 			]),
 		}))();
+	}
+
+	public get_config(system: string): SystemConfig | undefined {
+		const sys = this.systems[system];
+
+		if (sys === undefined) {
+			return undefined;
+		}
+
+		return {
+			location: sys.location,
+			gtfs: Object.fromEntries(
+				Object.entries(sys.gtfs).map(([s, g]) => [
+					s,
+					g === undefined
+						? undefined
+						: {
+								id: g.id,
+								max_age: g.max_age,
+						  },
+				])
+			),
+			realtime: Object.fromEntries(
+				Object.entries(sys.realtime).map(([s, g]) => [
+					s,
+					g === undefined
+						? undefined
+						: {
+								id: g.id,
+								max_age: g.max_age,
+						  },
+				])
+			),
+		};
 	}
 
 	public get_alerts(system: string): Promise<Alert[]> | undefined {
@@ -241,7 +275,7 @@ export default class Data {
 
 		const rt_alerts = (
 			await Promise.all(
-				Object.keys(this.systems[system].raw_realtime).map((rt) =>
+				Object.keys(this.systems[system].realtime).map((rt) =>
 					this.fetch_or_cached_realtime(system, rt)
 				)
 			)
@@ -268,7 +302,7 @@ export default class Data {
 		}
 
 		const rt = await Promise.all(
-			Object.keys(this.systems[system].raw_realtime).map((rt) =>
+			Object.keys(this.systems[system].realtime).map((rt) =>
 				this.fetch_or_cached_realtime(system, rt)
 			)
 		);
@@ -351,7 +385,7 @@ export default class Data {
 		}
 
 		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+			Object.keys(this.systems[system].gtfs).map((gtfs) =>
 				this.fetch_or_cached_gtfs(system, gtfs)
 			)
 		);
@@ -435,7 +469,7 @@ export default class Data {
 		}
 
 		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+			Object.keys(this.systems[system].gtfs).map((gtfs) =>
 				this.fetch_or_cached_gtfs(system, gtfs)
 			)
 		);
@@ -583,7 +617,7 @@ export default class Data {
 		}
 
 		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+			Object.keys(this.systems[system].gtfs).map((gtfs) =>
 				this.fetch_or_cached_gtfs(system, gtfs)
 			)
 		);
@@ -613,7 +647,7 @@ export default class Data {
 		);
 
 		const rt = await Promise.all(
-			Object.entries(this.systems[system].raw_realtime)
+			Object.entries(this.systems[system].realtime)
 				.filter(([_, rt]) => rt?.id !== undefined)
 				.map(([rt, _]) => this.fetch_or_cached_realtime(system, rt))
 		);
@@ -767,7 +801,7 @@ export default class Data {
 		}
 
 		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+			Object.keys(this.systems[system].gtfs).map((gtfs) =>
 				this.fetch_or_cached_gtfs(system, gtfs)
 			)
 		);
@@ -797,7 +831,7 @@ export default class Data {
 			);
 
 		const rt = await Promise.all(
-			Object.entries(this.systems[system].raw_realtime)
+			Object.entries(this.systems[system].realtime)
 				.filter(([_, rt]) => rt?.id !== undefined)
 				.map(([rt, _]) => this.fetch_or_cached_realtime(system, rt))
 		);
@@ -946,7 +980,7 @@ export default class Data {
 		}
 
 		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].raw_gtfs).map((gtfs) =>
+			Object.keys(this.systems[system].gtfs).map((gtfs) =>
 				this.fetch_or_cached_gtfs(system, gtfs)
 			)
 		);
@@ -1049,7 +1083,7 @@ export default class Data {
 		system: string,
 		source: string
 	): Promise<RawGtfs> {
-		const raw = this.systems[system]?.raw_gtfs?.[source];
+		const raw = this.systems[system]?.gtfs?.[source];
 
 		if (raw === undefined) {
 			throw new Error(
@@ -1125,7 +1159,7 @@ export default class Data {
 		system: string,
 		source: string
 	): Promise<RawRealtime> {
-		const raw = this.systems[system]?.raw_realtime?.[source];
+		const raw = this.systems[system]?.realtime?.[source];
 
 		if (raw === undefined) {
 			throw new Error(

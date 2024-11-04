@@ -1,0 +1,163 @@
+.wrapper {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 3rem auto 1fr;
+	grid-template-areas: "title title" "name location" "sources sources";
+	gap: 2rem;
+	margin: 2.5rem auto;
+	padding: 0 1rem;
+	max-width: 50rem;
+}
+
+.title {
+	grid-area: title;
+	margin: 0;
+	padding: 0;
+}
+
+.name {
+	grid-area: name;
+}
+
+.location {
+	grid-area: location;
+}
+
+.map {
+	background-color: var(--fg-color);
+	color: var(--bg-color);
+	width: 100%;
+	aspect-ratio: 1;
+}
+
+.label {
+	margin: 0;
+	padding: 0;
+	font-size: 1.5rem;
+}
+
+.sublabel {
+	margin: 0;
+	padding: 0;
+	font-size: 0.8rem;
+}
+
+.input {
+	height: 2rem;
+	margin: 0.5rem 0;
+	padding: 0.25rem 0.5rem;
+	width: 100%;
+	right: 0;
+	box-sizing: border-box;
+	font-size: 1rem;
+	outline: none;
+	border: 1px var(--fg-color) solid;
+	border-radius: 1rem;
+	color: var(--fg-color);
+}
+
+.input:disabled {
+	color: var(--fg-grey);
+	background-color: var(--bg-grey);
+	border-color: var(--fg-grey);
+	cursor: not-allowed;
+}
+
+.input::placeholder {
+	color: var(--fg-grey);
+}
+
+.inputwrapper {
+	display: inline-block;
+	width: auto;
+	flex-grow: 1;
+}
+
+.smallinput {
+	width: 6ch;
+}
+
+.sources {
+	grid-area: sources;
+	display: flex;
+	flex-direction: column;
+}
+
+.sourcelist {
+	margin: 0;
+	padding: 0 0 0 1rem;
+	list-style-type: disc;
+}
+
+.gtfssource {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.sourcelabel {
+	flex-grow: 1;
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1ch;
+}
+
+.smallsourcelabel {
+	flex-grow: 0;
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 1ch;
+}
+
+.rtsources {
+	margin: 0;
+	padding: 0 0 0.5rem 1rem;
+	list-style-type: circle;
+}
+
+.rtsource {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+
+.buttons {
+	display: flex;
+	flex-direction: row;
+	gap: 2rem;
+	height: 3rem;
+	align-items: center;
+	justify-content: flex-start;
+}
+
+.button {
+	height: 2.5rem;
+	margin: 0.5rem 0;
+	padding: 0.25rem 1rem;
+	box-sizing: border-box;
+	font-size: 1rem;
+	outline: none;
+	border: 1px var(--fg-color) solid;
+	border-radius: 1rem;
+	color: var(--fg-color);
+	background-color: var(--bg-color);
+	cursor: pointer;
+}
+
+.button:disabled {
+	color: var(--fg-grey);
+	background-color: var(--bg-grey);
+	border-color: var(--fg-grey);
+	cursor: not-allowed;
+}
+
+.button:hover {
+	border-width: 2px;
+	padding: calc(0.25rem - 1px) calc(1rem - 1px);
+}

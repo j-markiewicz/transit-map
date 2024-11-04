@@ -14,7 +14,7 @@ const data = new Data({
 			[50.1233, 19.7575],
 			[49.9628, 20.1764],
 		],
-		raw_gtfs: {
+		gtfs: {
 			"https://gtfs.ztp.krakow.pl/GTFS_KRK_T.zip": {
 				id: "t",
 				max_age: "1d",
@@ -24,7 +24,7 @@ const data = new Data({
 				max_age: "1d",
 			},
 		},
-		raw_realtime: {
+		realtime: {
 			"https://gtfs.ztp.krakow.pl/VehiclePositions_T.pb": {
 				id: "t",
 				max_age: "20s",
@@ -56,7 +56,7 @@ const data = new Data({
 			[50.6, 21.5],
 			[49.45, 19],
 		],
-		raw_gtfs: {
+		gtfs: {
 			"https://kolejemalopolskie.com.pl/rozklady_jazdy/kml-ska-gtfs.zip": {
 				id: "ska",
 				max_age: "1d",
@@ -66,7 +66,7 @@ const data = new Data({
 				max_age: "1d",
 			},
 		},
-		raw_realtime: {},
+		realtime: {},
 	},
 });
 
@@ -118,6 +118,88 @@ app.get("/api/:system", async (req, res) => {
 		}
 
 		res.json(await data.get_info(system));
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
+});
+
+app.get("/api/:system/config", async (req, res) => {
+	try {
+		const { system } = req.params;
+
+		if (!data.has_system(system)) {
+			res
+				.status(404)
+				.type("text/plain")
+				.send(`Transit system ${system} not found`);
+			return;
+		}
+
+		res.json({ ...data.get_config(system), can_edit: false });
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
+});
+
+app.put("/api/new", async (req, res) => {
+	try {
+		const token = req.header("Authorization");
+
+		if (token === undefined) {
+			res
+				.status(401)
+				.type("text/plain")
+				.header("WWW-Authenticate", "Bearer")
+				.send("Not authenticated");
+			return;
+		}
+
+		res
+			.status(403)
+			.type("text/plain")
+			.send("Not authorized to add a new transit system");
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
+});
+
+app.put("/api/:system/config", async (req, res) => {
+	try {
+		const { system } = req.params;
+		const token = req.header("Authorization");
+
+		if (!data.has_system(system)) {
+			res
+				.status(404)
+				.type("text/plain")
+				.send(`Transit system ${system} not found`);
+			return;
+		}
+
+		if (token === undefined) {
+			res
+				.status(401)
+				.type("text/plain")
+				.header("WWW-Authenticate", "Bearer")
+				.send("Not authenticated");
+			return;
+		}
+
+		res
+			.status(403)
+			.type("text/plain")
+			.send(
+				`Not authorized to edit configuration for transit system ${system}`
+			);
 	} catch (e) {
 		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
 		console.error(

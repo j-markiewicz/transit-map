@@ -428,6 +428,98 @@
 			</section>
 
 			<section>
+				<h2 id="system-config"><code>SystemConfig</code></h2>
+
+				<p>A transit system's configuration.</p>
+
+				<b>Type: Object</b>
+
+				<h3>Properties:</h3>
+				<ul>
+					<li>
+						<code>location</code> (<a href="#bounding-box"
+							><code>BoundingBox</code></a
+						>) - The bounding box around this transit system
+					</li>
+					<li>
+						<code>gtfs</code> (<code>object</code>) - GTFS Schedule data sources
+						(see below)
+					</li>
+					<li>
+						<code>realtime</code> (<code>object</code>) - GTFS Realtime data
+						sources (see below)
+					</li>
+				</ul>
+
+				<h3>The <code>gtfs</code> and <code>realtime</code> objects:</h3>
+				<p>
+					The objects have GTFS data source URLs (as <code>string</code>s) as
+					keys and objects with the following properties as values:
+				</p>
+
+				<ul>
+					<li>
+						<code>id</code> (<code>string</code>) - An identifier used when the
+						server is resolving IDs of GTFS objects, such that GTFS IDs (e.g.
+						<code>stop_id</code>s) are only resolved within data from sources
+						with the same <code>id</code> field; should usually be unique per
+						GTFS Schedule source if there are multiple, but may be empty (but in
+						that case, all <code>id</code> fields should be empty for all data
+						sources in this system)
+					</li>
+					<li>
+						<code>max_age</code> (<code>string</code>) - The maximum age that
+						cached data from this source can have before the server re-fetches
+						it (in a format understood by
+						<a href="https://www.npmjs.com/package/ms"><code>ms</code></a
+						>)
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="system-config-with-metadata">
+					<code>SystemConfigWithMetadata</code>
+				</h2>
+
+				<p>
+					A transit system's configuration with extra metadata returned from the
+					API.
+				</p>
+
+				<b
+					>Type: <a href="#system-config"><code>SystemConfig</code></a> with
+					additional properties</b
+				>
+
+				<h3>Additional Properties:</h3>
+				<ul>
+					<li>
+						<code>can_edit</code> (<code>boolean</code>) - Whether the
+						requesting user is authorized to edit this configuration
+					</li>
+				</ul>
+			</section>
+
+			<section>
+				<h2 id="system-config-with-name"><code>SystemConfigWithName</code></h2>
+
+				<p>A transit system's configuration with the system's name.</p>
+
+				<b
+					>Type: <a href="#system-config"><code>SystemConfig</code></a> with
+					additional properties</b
+				>
+
+				<h3>Additional Properties:</h3>
+				<ul>
+					<li>
+						<code>name</code> (<code>string</code>) - The transit system's name
+					</li>
+				</ul>
+			</section>
+
+			<section>
 				<h2 id="bounding-box"><code>BoundingBox</code></h2>
 
 				<p>A rectangular geografic area.</p>

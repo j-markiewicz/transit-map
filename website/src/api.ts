@@ -7,6 +7,7 @@ export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching all info: ${err}`);
+			return undefined;
 		});
 }
 
@@ -17,6 +18,49 @@ export async function get_info(
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching info: ${err}`);
+			return undefined;
+		});
+}
+
+export async function get_config(
+	system: string
+): Promise<(SystemConfig & { can_edit: boolean }) | undefined> {
+	return fetch(url(`${system}/config`), { priority: "high" })
+		.then((res) => res.json())
+		.catch((err) => {
+			console.error(`API error fetching config: ${err}`);
+			return undefined;
+		});
+}
+
+export async function post_config(
+	config: SystemConfig & { name: string }
+): Promise<boolean | undefined> {
+	return fetch(url(`new`), {
+		method: "POST",
+		body: JSON.stringify(config),
+		headers: { "Content-Type": "application/json" },
+	})
+		.then((res) => res.ok)
+		.catch((err) => {
+			console.error(`API error posting config: ${err}`);
+			return undefined;
+		});
+}
+
+export async function put_config(
+	system: string,
+	config: SystemConfig
+): Promise<boolean | undefined> {
+	return fetch(url(`${system}/config`), {
+		method: "PUT",
+		body: JSON.stringify(config),
+		headers: { "Content-Type": "application/json" },
+	})
+		.then((res) => res.ok)
+		.catch((err) => {
+			console.error(`API error putting config: ${err}`);
+			return undefined;
 		});
 }
 
@@ -25,6 +69,7 @@ export async function get_alerts(system: string): Promise<Alert[] | undefined> {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching alerts: ${err}`);
+			return undefined;
 		});
 }
 
@@ -35,6 +80,7 @@ export async function get_vehicles(
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching vehicles: ${err}`);
+			return undefined;
 		});
 }
 
@@ -43,6 +89,7 @@ export async function get_stops(system: string): Promise<Stop[] | undefined> {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching stops: ${err}`);
+			return undefined;
 		});
 }
 
@@ -51,6 +98,7 @@ export async function get_lines(system: string): Promise<Line[] | undefined> {
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching lines: ${err}`);
+			return undefined;
 		});
 }
 
@@ -62,6 +110,7 @@ export async function get_stop_schedule(
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching stop schedule: ${err}`);
+			return undefined;
 		});
 }
 
@@ -73,6 +122,7 @@ export async function get_line_schedule(
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching line schedule: ${err}`);
+			return undefined;
 		});
 }
 
@@ -84,6 +134,7 @@ export async function get_shape(
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching shape: ${err}`);
+			return undefined;
 		});
 }
 
@@ -121,6 +172,37 @@ export type BasicSystemInfo = {
 	stops: number | undefined;
 	/** number of lines in this system, if immediately known */
 	lines: number | undefined;
+};
+
+/** configuration for a transit system */
+export type SystemConfig = {
+	/** bounding box around (most of) the system, used for initial map position */
+	location: [LatLon, LatLon];
+	/** gtfs schedule data sources */
+	gtfs: {
+		[source in string]?: {
+			/** unique identifier of this data source within the transit system
+			 *
+			 * may be left empty if there is either only one gtfs source in
+			 * this transit system or all of this transit system's gtfs sources
+			 * should be treated as though they were one source (and ids should
+			 * always be resolved in all sources, but then ALL source ids in
+			 * this transit system must be empty)
+			 */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+		};
+	};
+	/** gtfs realtime data sources */
+	realtime: {
+		[source in string]?: {
+			/** identifier of the gtfs source that ids within this data should be resolved in */
+			id: string;
+			/** maximum age of the cached data */
+			max_age: string;
+		};
+	};
 };
 
 /** an alert */

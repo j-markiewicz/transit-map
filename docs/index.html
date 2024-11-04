@@ -24,11 +24,11 @@
 				The following table describes API endpoints which make transit data
 				available. All of them support the <code>GET</code> method (to get the
 				data described below) and the <code>OPTIONS</code> method (for CORS
-				preflight requests). No API keys of tokens are required for these
-				endpoints.
+				preflight requests). No API keys or tokens are required for these
+				endpoints. Data is returned in JSON format.
 			</p>
 
-			<table>
+			<table class="data-api-endpoints">
 				<thead>
 					<tr>
 						<th scope="col">URL path</th>
@@ -188,6 +188,83 @@
 				can be repeatedly re-requested until a response contains the desired
 				information.
 			</p>
+
+			<h2>Configuration API endpoints</h2>
+
+			<p>
+				The following table describes API endpoints which make
+				<code>transit-map</code> transit system configuration available and
+				editable. API keys are required for these endpoints for
+				<code>POST</code> and <code>PUT</code> requests. Data is passed and
+				returned in JSON format.
+			</p>
+
+			<table class="config-api-endpoints">
+				<thead>
+					<tr>
+						<th scope="col">Method</th>
+						<th scope="col">URL path</th>
+						<th scope="col">Request type</th>
+						<th scope="col">Return type</th>
+						<th scope="col">Description</th>
+					</tr>
+				</thead>
+				<tr>
+					<td>
+						<code>GET</code>
+					</td>
+					<td>
+						<a onclick="try_api('Kraków/config')"
+							><code>/:system/config</code></a
+						>
+					</td>
+					<td>-</td>
+					<td>
+						<a href="types#system-config-with-metadata"
+							><code>SystemConfigWithMetadata</code></a
+						>
+					</td>
+					<td>
+						Configuration for the transit system <code>:system</code> and
+						whether the requesting user can edit this configuration (always
+						<code>false</code> if no credentials were sent in the request)
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<code>PUT</code>
+					</td>
+					<td>
+						<code>/:system/config</code>
+					</td>
+					<td>
+						<a href="types#system-config"><code>SystemConfig</code></a>
+					</td>
+					<td>-</td>
+					<td>
+						Overwrite the configuration for the existing transit system
+						<code>:system</code>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<code>POST</code>
+					</td>
+					<td>
+						<code>/new</code>
+					</td>
+					<td>
+						<a href="types#system-config-with-name"
+							><code>SystemConfigWithName</code></a
+						>
+					</td>
+					<td>-</td>
+					<td>
+						Create a new transit system with the given configuration and name
+						(fails if a transit system with that name already exists)
+					</td>
+				</tr>
+			</table>
 
 			<h2>Try it out</h2>
 

@@ -390,8 +390,8 @@ export type LineSchedules = {
 export type SystemInfo = {
 	/** bounding box around (most of) the system, used for initial map position */
 	location: [LatLon, LatLon];
-	/** raw gtfs data sources and their data */
-	raw_gtfs: {
+	/** gtfs schedule data sources and their data */
+	gtfs: {
 		[source in string]?: {
 			/** unique identifier of this data source within the transit system
 			 *
@@ -408,8 +408,8 @@ export type SystemInfo = {
 			data?: Promise<RawGtfs>;
 		};
 	};
-	/** raw gtfs realtime data sources and their data */
-	raw_realtime: {
+	/** gtfs realtime data sources and their data */
+	realtime: {
 		[source in string]?: {
 			/** identifier of the gtfs source that ids within this data should be resolved in */
 			id: string;
@@ -444,8 +444,8 @@ export type SystemInfo = {
 export type SystemConfig = {
 	/** bounding box around (most of) the system, used for initial map position */
 	location: [LatLon, LatLon];
-	/** raw gtfs data sources and their data */
-	raw_gtfs: {
+	/** gtfs schedule data sources */
+	gtfs: {
 		[source in string]?: {
 			/** unique identifier of this data source within the transit system
 			 *
@@ -460,8 +460,8 @@ export type SystemConfig = {
 			max_age: string;
 		};
 	};
-	/** raw gtfs realtime data sources and their data */
-	raw_realtime: {
+	/** gtfs realtime data sources */
+	realtime: {
 		[source in string]?: {
 			/** identifier of the gtfs source that ids within this data should be resolved in */
 			id: string;

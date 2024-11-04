@@ -90,7 +90,6 @@ export default class Map extends Component<{
 			zoom: 2,
 			layers: [Object.values(maps)[0]],
 			zoomControl: true,
-			doubleClickZoom: false,
 		});
 
 		L.control.layers(maps, overlays, { autoZIndex: false }).addTo(this.map);
