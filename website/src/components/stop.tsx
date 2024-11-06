@@ -1,5 +1,5 @@
 import { navigate } from "wouter-preact/use-hash-location";
-import { useContext } from "preact/hooks";
+import { useContext, useEffect } from "preact/hooks";
 import L from "leaflet";
 
 import { MapCtx } from "../pages/map.tsx";
@@ -18,26 +18,22 @@ export default function Stop({
 	name: string;
 	lines: { id: string; name: string; headsign: string; type: VehicleType }[];
 }) {
+	let unhighlight: (() => void) | undefined;
+	useEffect(() => () => unhighlight?.(), []);
 	const { map, stops } = useContext(MapCtx)!;
 
 	return (
 		<div
 			class={style.stop}
+			onMouseLeave={() => unhighlight?.()}
 			onMouseEnter={() => {
 				const zoom = Math.pow(map.getZoom() / 22, 3);
+				const old_icon = stops[id]?.getIcon();
+				unhighlight = () => stops[id]?.setIcon(old_icon!);
 				stops[id]?.setIcon(
 					L.icon({
 						iconUrl: stops[id].getIcon().options.iconUrl!,
 						iconSize: [2 * zoom * 48, 2 * zoom * 64],
-					})
-				);
-			}}
-			onMouseLeave={() => {
-				const zoom = Math.pow(map.getZoom() / 22, 3);
-				stops[id]?.setIcon(
-					L.icon({
-						iconUrl: stops[id].getIcon().options.iconUrl!,
-						iconSize: [zoom * 48, zoom * 64],
 					})
 				);
 			}}
