@@ -1,3 +1,4 @@
+import { ComponentChildren } from "preact";
 import { useState } from "preact/hooks";
 
 import expand_icon from "../assets/expand.svg";
@@ -6,7 +7,6 @@ import unexpand_icon from "../assets/unexpand.svg";
 import { VehicleType } from "../api.ts";
 import { get_type_name, get_vehicle_icon } from "../util.ts";
 import style from "./line-group.module.css";
-import { ComponentChildren } from "preact";
 
 export default function LineGroup({
 	name,

@@ -1,19 +1,36 @@
-import { Component, ComponentChild, ComponentChildren } from "preact";
+import {
+	Component,
+	ComponentChild,
+	ComponentChildren,
+	createContext,
+	createRef,
+} from "preact";
 import { navigate } from "wouter-preact/use-hash-location";
 import L from "leaflet";
 
-import layers from "../layers.json";
-import "leaflet/dist/leaflet.css";
-import style from "./map.module.css";
-import "./map.css";
+import Loading from "../components/loading.tsx";
 import { get_vehicles, get_stops, get_info, VehicleType } from "../api.ts";
 import { get_stop_icon, get_vehicle_icon } from "../util.ts";
+import layers from "../layers.json";
+import style from "./map.module.css";
+import "leaflet/dist/leaflet.css";
+import "./map.css";
 
-export default class Map extends Component<{
-	children: ComponentChildren;
-	system: string;
-}> {
+export const MapCtx = createContext<{
+	map: L.Map;
+	stops: { [id in string]?: L.Marker };
+} | null>(null);
+
+export default class Map extends Component<
+	{
+		children: ComponentChildren;
+		system: string;
+	},
+	{ map_init: boolean }
+> {
 	private map: L.Map | undefined;
+	private map_container = createRef<HTMLElement>();
+	private stops: { [id in string]?: L.Marker } = {};
 	private intervals: ReturnType<typeof setInterval>[] = [];
 
 	componentDidMount() {
@@ -46,8 +63,16 @@ export default class Map extends Component<{
 	}>): ComponentChild {
 		return (
 			<div class={style.wrapper}>
-				<section class={style.sidebar}>{children}</section>
-				<section id="map-container" class={style.map}></section>
+				<section class={style.sidebar}>
+					{this.state.map_init ? (
+						<MapCtx.Provider value={{ map: this.map!, stops: this.stops }}>
+							{children}
+						</MapCtx.Provider>
+					) : (
+						<Loading />
+					)}
+				</section>
+				<section ref={this.map_container} class={style.map}></section>
 			</div>
 		);
 	}
@@ -85,7 +110,11 @@ export default class Map extends Component<{
 			])
 		);
 
-		this.map = L.map("map-container", {
+		if (this.map_container.current === null) {
+			return;
+		}
+
+		this.map = L.map(this.map_container.current, {
 			center: [0, 0],
 			zoom: 2,
 			layers: [Object.values(maps)[0]],
@@ -105,43 +134,39 @@ export default class Map extends Component<{
 				this.map?.flyToBounds(info.location);
 			}
 		});
+
+		this.setState({ map_init: true });
 	}
 
 	private set_up_markers() {
 		get_stops(this.props.system).then((stops) => {
 			if (stops !== undefined && this.map !== undefined) {
 				const map = this.map;
-				const stop_markers: L.Marker[] = [];
-
 				const zoom = Math.pow(map.getZoom() / 22, 3);
 
 				for (const stop of stops) {
-					stop_markers.push(
-						L.marker([stop.lat, stop.lon], {
-							title: `${stop.name} (${[
-								...new Set(stop.lines.map((l) => l.name)),
-							]
-								.sort()
-								.sort((a, b) => a.length - b.length)
-								.join(", ")})`,
-							draggable: false,
-							icon: L.icon({
-								iconUrl: get_stop_icon(stop.types[0] ?? VehicleType.Other),
-								iconSize: [zoom * 48, zoom * 64],
-							}),
-						})
-							.addTo(map)
-							.on("click", () =>
-								navigate(`/${this.props.system}/stop/${stop.id}`)
-							)
-					);
+					this.stops[stop.id] = L.marker([stop.lat, stop.lon], {
+						title: `${stop.name} (${[...new Set(stop.lines.map((l) => l.name))]
+							.sort()
+							.sort((a, b) => a.length - b.length)
+							.join(", ")})`,
+						draggable: false,
+						icon: L.icon({
+							iconUrl: get_stop_icon(stop.types[0] ?? VehicleType.Other),
+							iconSize: [zoom * 48, zoom * 64],
+						}),
+					})
+						.addTo(map)
+						.on("click", () =>
+							navigate(`/${this.props.system}/stop/${stop.id}`)
+						);
 				}
 
 				map.on("zoomend", () => {
 					const zoom = Math.pow(map.getZoom() / 22, 3);
 
-					for (const marker of stop_markers) {
-						marker.setIcon(
+					for (const marker of Object.values(this.stops)) {
+						marker?.setIcon(
 							L.icon({
 								iconUrl: marker.getIcon().options.iconUrl!,
 								iconSize: [zoom * 48, zoom * 64],
