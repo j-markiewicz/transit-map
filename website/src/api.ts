@@ -272,6 +272,8 @@ export type Line = {
 	name: string;
 	/** headsign of the line */
 	headsign: string;
+	/** the color of this line in rgb hex (without leading '#'), if specified in the source data */
+	color: string | undefined;
 	/** stops of the line, in service order */
 	stops: {
 		/** unique identifier of the stop */

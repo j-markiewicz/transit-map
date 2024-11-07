@@ -7,6 +7,7 @@ import {
 } from "preact";
 import { navigate } from "wouter-preact/use-hash-location";
 import { effect, Signal, signal } from "@preact/signals";
+import { GeoJsonObject } from "geojson";
 import L from "leaflet";
 
 import Loading from "../components/loading.tsx";
@@ -26,7 +27,7 @@ import "./map.css";
 export const MapCtx = createContext<{
 	map: L.Map;
 	highlighted: Signal<string | null>;
-	shapes: Signal<string[]>;
+	shapes: Signal<[string, string | undefined][]>;
 } | null>(null);
 
 export default class Map extends Component<
@@ -39,8 +40,17 @@ export default class Map extends Component<
 	private map: L.Map | undefined;
 	private map_container = createRef<HTMLElement>();
 	private highlighted = signal<string | null>(null);
-	private shapes = signal<string[]>([]);
-	private shape_lines: L.GeoJSON = L.geoJSON(null);
+	private shapes = signal<[string, string | undefined][]>([]);
+	private shape_lines: L.GeoJSON = L.geoJSON(null, {
+		style: (feature: unknown) => {
+			const f = feature as object;
+			if ("color" in f) {
+				return { color: `#${f.color}` };
+			} else {
+				return {};
+			}
+		},
+	});
 	private stops: { [id in string]?: L.Marker } = {};
 	private intervals: ReturnType<typeof setInterval>[] = [];
 
@@ -157,10 +167,13 @@ export default class Map extends Component<
 			this.shape_lines.clearLayers();
 			let current = true;
 
-			this.shapes.value.forEach((s) => {
+			this.shapes.value.forEach(([s, c]) => {
 				get_shape(this.props.system, s).then((res) => {
 					if (res !== undefined && current) {
-						this.shape_lines.addData(res);
+						this.shape_lines.addData({
+							...res,
+							color: c,
+						} as GeoJsonObject);
 					}
 				});
 			});

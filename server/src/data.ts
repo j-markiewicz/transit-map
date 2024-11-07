@@ -561,6 +561,7 @@ export default class Data {
 			const trip = {
 				id: gtfs_trip.id,
 				name: gtfs_routes[gtfs_trip.route]?.name ?? "???",
+				color: gtfs_routes[gtfs_trip.route]?.color,
 				headsign,
 				type: gtfs_routes[gtfs_trip.route]?.type ?? VehicleType.Other,
 				stops,
@@ -874,6 +875,7 @@ export default class Data {
 					id: lid,
 					name: "???",
 					headsign: "",
+					color: undefined,
 					type: VehicleType.Other,
 					shape: [],
 					stops: [],

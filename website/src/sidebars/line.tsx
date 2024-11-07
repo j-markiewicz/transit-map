@@ -22,7 +22,7 @@ export default function Line({ system, id }: { system: string; id: string }) {
 			if (s === undefined) {
 				setSchedule("error");
 			} else {
-				shapes.value = s.shape;
+				shapes.value = s.shape.map((sh) => [sh, s.color]);
 				setSchedule(s);
 			}
 		});

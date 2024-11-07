@@ -146,6 +146,7 @@ async function fetch_and_parse_gtfs(
 		routes.push({
 			id: id(record["route_id"]),
 			name: record["route_short_name"] || record["route_long_name"],
+			color: record["route_color"] || undefined,
 			type: vehicle_type(parseInt(record["route_type"])),
 		});
 	}
