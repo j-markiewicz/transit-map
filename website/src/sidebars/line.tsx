@@ -1,5 +1,5 @@
 import { navigate } from "wouter-preact/use-hash-location";
-import { useEffect, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
 
 import back_icon from "../assets/back.svg";
 import refresh_icon from "../assets/refresh.svg";
@@ -7,12 +7,15 @@ import refresh_icon from "../assets/refresh.svg";
 import Loading from "../components/loading.tsx";
 import { get_line_schedule, LineSchedule } from "../api.ts";
 import { get_stop_icon, get_type_name } from "../util.ts";
+import { MapCtx } from "../pages/map.tsx";
 import style from "./line.module.css";
 
 export default function Line({ system, id }: { system: string; id: string }) {
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
 	const [schedule, setSchedule] = useState<LineSchedule | "error" | null>(null);
+	const { highlighted } = useContext(MapCtx)!;
+	useEffect(() => () => (highlighted.value = null), []);
 
 	useEffect(() => {
 		get_line_schedule(system, id).then((s) => {
@@ -68,6 +71,8 @@ export default function Line({ system, id }: { system: string; id: string }) {
 							<div
 								class={style.stop}
 								onClick={() => navigate(`/${system}/stop/${s.id}`)}
+								onMouseLeave={() => (highlighted.value = null)}
+								onMouseEnter={() => (highlighted.value = s.id)}
 							>
 								<img
 									class={style.stopicon}
