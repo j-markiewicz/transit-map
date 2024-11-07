@@ -155,6 +155,7 @@ async function lines(
 									name={l.name}
 									headsign={l.headsign}
 									stops={l.stops.map((s) => s.name)}
+									shapes={l.shape.map((s) => [s, l.color])}
 								/>
 							))}
 					</LineGroup>
