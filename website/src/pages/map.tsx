@@ -10,7 +10,13 @@ import { effect, Signal, signal } from "@preact/signals";
 import L from "leaflet";
 
 import Loading from "../components/loading.tsx";
-import { get_vehicles, get_stops, get_info, VehicleType } from "../api.ts";
+import {
+	get_vehicles,
+	get_stops,
+	get_info,
+	VehicleType,
+	get_shape,
+} from "../api.ts";
 import { get_stop_icon, get_vehicle_icon } from "../util.ts";
 import layers from "../layers.json";
 import style from "./map.module.css";
@@ -20,6 +26,7 @@ import "./map.css";
 export const MapCtx = createContext<{
 	map: L.Map;
 	highlighted: Signal<string | null>;
+	shapes: Signal<string[]>;
 } | null>(null);
 
 export default class Map extends Component<
@@ -32,6 +39,8 @@ export default class Map extends Component<
 	private map: L.Map | undefined;
 	private map_container = createRef<HTMLElement>();
 	private highlighted = signal<string | null>(null);
+	private shapes = signal<string[]>([]);
+	private shape_lines: L.GeoJSON = L.geoJSON(null);
 	private stops: { [id in string]?: L.Marker } = {};
 	private intervals: ReturnType<typeof setInterval>[] = [];
 
@@ -71,6 +80,7 @@ export default class Map extends Component<
 							value={{
 								map: this.map!,
 								highlighted: this.highlighted,
+								shapes: this.shapes,
 							}}
 						>
 							{children}
@@ -129,6 +139,7 @@ export default class Map extends Component<
 		});
 
 		L.control.layers(maps, overlays, { autoZIndex: false }).addTo(this.map);
+		this.shape_lines.addTo(this.map);
 		L.control
 			.scale({
 				imperial: false,
@@ -140,6 +151,23 @@ export default class Map extends Component<
 			if (info?.location !== undefined) {
 				this.map?.flyToBounds(info.location);
 			}
+		});
+
+		effect(() => {
+			this.shape_lines.clearLayers();
+			let current = true;
+
+			this.shapes.value.forEach((s) => {
+				get_shape(this.props.system, s).then((res) => {
+					if (res !== undefined && current) {
+						this.shape_lines.addData(res);
+					}
+				});
+			});
+
+			return () => {
+				current = false;
+			};
 		});
 
 		this.setState({ map_init: true });
