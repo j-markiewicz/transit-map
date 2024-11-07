@@ -6,6 +6,7 @@ import {
 	createRef,
 } from "preact";
 import { navigate } from "wouter-preact/use-hash-location";
+import { effect, Signal, signal } from "@preact/signals";
 import L from "leaflet";
 
 import Loading from "../components/loading.tsx";
@@ -18,7 +19,7 @@ import "./map.css";
 
 export const MapCtx = createContext<{
 	map: L.Map;
-	stops: { [id in string]?: L.Marker };
+	highlighted: Signal<string | null>;
 } | null>(null);
 
 export default class Map extends Component<
@@ -30,6 +31,7 @@ export default class Map extends Component<
 > {
 	private map: L.Map | undefined;
 	private map_container = createRef<HTMLElement>();
+	private highlighted = signal<string | null>(null);
 	private stops: { [id in string]?: L.Marker } = {};
 	private intervals: ReturnType<typeof setInterval>[] = [];
 
@@ -65,7 +67,12 @@ export default class Map extends Component<
 			<div class={style.wrapper}>
 				<section class={style.sidebar}>
 					{this.state.map_init ? (
-						<MapCtx.Provider value={{ map: this.map!, stops: this.stops }}>
+						<MapCtx.Provider
+							value={{
+								map: this.map!,
+								highlighted: this.highlighted,
+							}}
+						>
 							{children}
 						</MapCtx.Provider>
 					) : (
@@ -162,18 +169,24 @@ export default class Map extends Component<
 						);
 				}
 
-				map.on("zoomend", () => {
+				const resize = () => {
 					const zoom = Math.pow(map.getZoom() / 22, 3);
 
-					for (const marker of Object.values(this.stops)) {
+					for (const [id, marker] of Object.entries(this.stops)) {
 						marker?.setIcon(
 							L.icon({
 								iconUrl: marker.getIcon().options.iconUrl!,
-								iconSize: [zoom * 48, zoom * 64],
+								iconSize:
+									this.highlighted.value === id
+										? [2 * zoom * 48, 2 * zoom * 64]
+										: [zoom * 48, zoom * 64],
 							})
 						);
 					}
-				});
+				};
+
+				map.on("zoomend", resize);
+				effect(resize);
 			}
 		});
 

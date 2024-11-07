@@ -1,6 +1,5 @@
 import { navigate } from "wouter-preact/use-hash-location";
 import { useContext, useEffect } from "preact/hooks";
-import L from "leaflet";
 
 import { MapCtx } from "../pages/map.tsx";
 import { VehicleType } from "../api.ts";
@@ -18,25 +17,14 @@ export default function Stop({
 	name: string;
 	lines: { id: string; name: string; headsign: string; type: VehicleType }[];
 }) {
-	let unhighlight: (() => void) | undefined;
-	useEffect(() => () => unhighlight?.(), []);
-	const { map, stops } = useContext(MapCtx)!;
+	const { highlighted } = useContext(MapCtx)!;
+	useEffect(() => () => (highlighted.value = null), []);
 
 	return (
 		<div
 			class={style.stop}
-			onMouseLeave={() => unhighlight?.()}
-			onMouseEnter={() => {
-				const zoom = Math.pow(map.getZoom() / 22, 3);
-				const old_icon = stops[id]?.getIcon();
-				unhighlight = () => stops[id]?.setIcon(old_icon!);
-				stops[id]?.setIcon(
-					L.icon({
-						iconUrl: stops[id].getIcon().options.iconUrl!,
-						iconSize: [2 * zoom * 48, 2 * zoom * 64],
-					})
-				);
-			}}
+			onMouseLeave={() => (highlighted.value = null)}
+			onMouseEnter={() => (highlighted.value = id)}
 		>
 			<p class={style.name} onClick={() => navigate(`/${system}/stop/${id}`)}>
 				{name}

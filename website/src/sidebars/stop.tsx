@@ -1,5 +1,5 @@
 import { navigate } from "wouter-preact/use-hash-location";
-import { useEffect, useState } from "preact/hooks";
+import { useContext, useEffect, useState } from "preact/hooks";
 import { Temporal } from "temporal-polyfill";
 
 import back_icon from "../assets/back.svg";
@@ -7,11 +7,13 @@ import refresh_icon from "../assets/refresh.svg";
 
 import Loading from "../components/loading.tsx";
 import ScheduledStop from "../components/scheduled-stop.tsx";
+import { MapCtx } from "../pages/map.tsx";
 import { get_stop_schedule, StopSchedule } from "../api.ts";
 import { cmp } from "../util.ts";
 import style from "./stop.module.css";
 
 export default function Stop({ system, id }: { system: string; id: string }) {
+	const { highlighted } = useContext(MapCtx)!;
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
 	const [schedule, setSchedule] = useState<StopSchedule | "error" | null>(null);
@@ -28,6 +30,11 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 
 		setFilterInner((f) => (f === line ? null : line));
 	};
+
+	useEffect(() => {
+		highlighted.value = id;
+		return () => (highlighted.value = null);
+	}, [system, id]);
 
 	useEffect(() => {
 		let valid = true;
