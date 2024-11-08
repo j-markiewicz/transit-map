@@ -292,7 +292,38 @@ app.get("/api/:system/lines", async (req, res) => {
 	}
 });
 
-app.get("/api/:system/stop_schedule/:stop", async (req, res) => {
+app.get("/api/:system/line/:line", async (req, res) => {
+	try {
+		const { system, line } = req.params;
+
+		if (!data.has_system(system)) {
+			res
+				.status(404)
+				.type("text/plain")
+				.send(`Transit system ${system} not found`);
+			return;
+		}
+
+		const l = await data.get_line(system, line);
+
+		if (l === undefined) {
+			res
+				.status(404)
+				.type("text/plain")
+				.send(`Line ${line} not found in ${system}`);
+			return;
+		}
+
+		res.json(l);
+	} catch (e) {
+		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+		console.error(
+			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+		);
+	}
+});
+
+app.get("/api/:system/stop/:stop", async (req, res) => {
 	try {
 		const { system, stop } = req.params;
 
@@ -311,37 +342,6 @@ app.get("/api/:system/stop_schedule/:stop", async (req, res) => {
 				.status(404)
 				.type("text/plain")
 				.send(`Stop ${stop} not found in ${system}`);
-			return;
-		}
-
-		res.json(sched);
-	} catch (e) {
-		res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
-		console.error(
-			`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
-		);
-	}
-});
-
-app.get("/api/:system/line_schedule/:line", async (req, res) => {
-	try {
-		const { system, line } = req.params;
-
-		if (!data.has_system(system)) {
-			res
-				.status(404)
-				.type("text/plain")
-				.send(`Transit system ${system} not found`);
-			return;
-		}
-
-		const sched = await data.get_line_schedule(system, line);
-
-		if (sched === undefined) {
-			res
-				.status(404)
-				.type("text/plain")
-				.send(`Line ${line} not found in ${system}`);
 			return;
 		}
 

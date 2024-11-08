@@ -5,7 +5,8 @@ import back_icon from "../assets/back.svg";
 import refresh_icon from "../assets/refresh.svg";
 
 import Loading from "../components/loading.tsx";
-import { get_line_schedule, LineSchedule } from "../api.ts";
+import { get_line } from "../api.ts";
+import type { Line } from "../api.ts";
 import { get_stop_icon, get_type_name } from "../util.ts";
 import { MapCtx } from "../pages/map.tsx";
 import style from "./line.module.css";
@@ -13,12 +14,12 @@ import style from "./line.module.css";
 export default function Line({ system, id }: { system: string; id: string }) {
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
-	const [schedule, setSchedule] = useState<LineSchedule | "error" | null>(null);
+	const [schedule, setSchedule] = useState<Line | "error" | null>(null);
 	const { highlighted, shapes } = useContext(MapCtx)!;
 	useEffect(() => () => (highlighted.value = null), [system, id]);
 
 	useEffect(() => {
-		get_line_schedule(system, id).then((s) => {
+		get_line(system, id).then((s) => {
 			if (s === undefined) {
 				setSchedule("error");
 			} else {

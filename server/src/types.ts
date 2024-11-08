@@ -340,8 +340,8 @@ export type LinesInfo = {
 
 /** information about a stop and its schedule */
 export type StopSchedule = Stop & {
-	/** this stop's scheduled stops */
-	schedule: {
+	/** this stop's arrivals */
+	arrivals: {
 		/** transit line stopping at this stop */
 		line: string;
 		/** the line's name */
@@ -364,30 +364,6 @@ export type StopSchedule = Stop & {
 /** arrival and departure times of stops */
 export type StopSchedules = {
 	[stop in string]?: Lazy<StopSchedule>;
-};
-
-/** information about a line and its schedule */
-export type LineSchedule = Line & {
-	/** this line's scheduled stops */
-	schedule: {
-		/** stop identifier */
-		stop: string;
-		/** user-facing stop name */
-		stop_name: string;
-		/** arrival time */
-		arrival: string;
-		/** departure time */
-		departure: string;
-		/** transit vehicle serving this stop, if known */
-		vehicle?: string;
-		/** this stop's delay and its uncertainty in seconds, if known */
-		delay?: [number, number | undefined];
-	}[];
-};
-
-/** arrival and departure times of lines */
-export type LineSchedules = {
-	[line in string]?: Lazy<LineSchedule>;
 };
 
 /** information about a transit system */
@@ -433,8 +409,6 @@ export type SystemInfo = {
 	lines: Promise<LinesInfo> | undefined;
 	/** cached stop schedules */
 	stop_schedules: Promise<StopSchedules> | undefined;
-	/** cached line schedules */
-	line_schedules: Promise<LineSchedules> | undefined;
 	/** cached service schedules */
 	services:
 		| Promise<{

@@ -303,12 +303,12 @@
 						>)
 					</li>
 					<li>
-						<code>schedule</code> (<code>object[]</code>) - An array of objects
+						<code>arrivals</code> (<code>object[]</code>) - An array of objects
 						describing stops at this transit stop (see below)
 					</li>
 				</ul>
 
-				<h3>Properties of the objects in <code>schedule</code>:</h3>
+				<h3>Properties of the objects in <code>arrivals</code>:</h3>
 				<ul>
 					<li>
 						<code>line</code> (<code>string</code>) - Unique ID of the line
@@ -344,84 +344,6 @@
 					<li>
 						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
 						- Unique identifier of the vehicle serving this stop, if known
-					</li>
-					<li>
-						<code>delay</code> (<code>[number, number]</code> or
-						<code>[number, undefined]</code> or <code>undefined</code>) - The
-						delay of this stop (in seconds) and the uncertainty of the delay (in
-						seconds, if known), if known
-					</li>
-				</ul>
-			</section>
-
-			<section>
-				<h2 id="line-schedule"><code>LineSchedule</code></h2>
-
-				<p>Information about a transit line and its schedule.</p>
-
-				<b>Type: Object</b>
-
-				<h3>Properties:</h3>
-				<ul>
-					<li>
-						<code>id</code> (<code>string</code>) - Unique ID of this line
-					</li>
-					<li>
-						<code>name</code> (<code>string</code>) - User-facing name of this
-						line
-					</li>
-					<li>
-						<code>headsign</code> (<code>string</code>) - Headsign of this line
-						(often e.g. the last stop)
-					</li>
-					<li>
-						<code>stops</code> (<code>object[]</code>) - Stops served by this
-						line (see <a href="#line"><code>Line</code></a
-						>)
-					</li>
-					<li>
-						<code>type</code> (<code
-							><a href="#vehicle-type">VehicleType</a></code
-						>) - The type of vehicles on this line
-					</li>
-					<li>
-						<code>shape</code> (<code>string[]</code>) - Identifiers of shapes
-						describing this line
-					</li>
-					<li>
-						<code>schedule</code> (<code>object[]</code>) - An array of objects
-						describing stops at this transit stop (see below)
-					</li>
-				</ul>
-
-				<h3>Properties of the objects in <code>schedule</code>:</h3>
-				<ul>
-					<li>
-						<code>stop</code> (<code>string</code>) - Unique identifier of the
-						stop
-					</li>
-					<li>
-						<code>stop_name</code> (<code>string</code>) - User-facing name of
-						the stop
-					</li>
-					<li>
-						<code>arrival</code> (<code>string</code>) - Arrival time (in the
-						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
-							><code>Temporal.ZonedDateTime</code></a
-						>
-						string format)
-					</li>
-					<li>
-						<code>departure</code> (<code>string</code>) - Departure time (in
-						the
-						<a href="https://tc39.es/proposal-temporal/docs/zoneddatetime.html"
-							><code>Temporal.ZonedDateTime</code></a
-						>
-						string format)
-					</li>
-					<li>
-						<code>vehicle</code> (<code>string</code> or <code>undefined</code>)
-						- Unique ID of the transit vehicle serving this stop, if known
 					</li>
 					<li>
 						<code>delay</code> (<code>[number, number]</code> or

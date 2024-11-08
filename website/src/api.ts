@@ -102,26 +102,26 @@ export async function get_lines(system: string): Promise<Line[] | undefined> {
 		});
 }
 
-export async function get_stop_schedule(
+export async function get_line(
 	system: string,
-	stop: string
-): Promise<StopSchedule | undefined> {
-	return fetch(url(`${system}/stop_schedule/${stop}`))
+	line: string
+): Promise<Line | undefined> {
+	return fetch(url(`${system}/line/${line}`))
 		.then((res) => res.json())
 		.catch((err) => {
-			console.error(`API error fetching stop schedule: ${err}`);
+			console.error(`API error fetching line: ${err}`);
 			return undefined;
 		});
 }
 
-export async function get_line_schedule(
+export async function get_stop(
 	system: string,
-	line: string
-): Promise<LineSchedule | undefined> {
-	return fetch(url(`${system}/line_schedule/${line}`))
+	stop: string
+): Promise<StopSchedule | undefined> {
+	return fetch(url(`${system}/stop/${stop}`))
 		.then((res) => res.json())
 		.catch((err) => {
-			console.error(`API error fetching line schedule: ${err}`);
+			console.error(`API error fetching stop: ${err}`);
 			return undefined;
 		});
 }
@@ -293,8 +293,8 @@ export type Line = {
 
 /** information about a stop and its schedule */
 export type StopSchedule = Stop & {
-	/** this stop's scheduled stops */
-	schedule: {
+	/** this stop's scheduled arrivals */
+	arrivals: {
 		/** transit line stopping at this stop */
 		line: string;
 		/** the line's name */
@@ -308,25 +308,6 @@ export type StopSchedule = Stop & {
 		/** departure time */
 		departure: string;
 		/** vehicle identifier serving this stop, if known */
-		vehicle?: string;
-		/** this stop's delay and its uncertainty in seconds, if known */
-		delay?: [number, number | undefined];
-	}[];
-};
-
-/** information about a line and its schedule */
-export type LineSchedule = Line & {
-	/** this line's scheduled stops */
-	schedule: {
-		/** stop identifier */
-		stop: string;
-		/** user-facing stop name */
-		stop_name: string;
-		/** arrival time */
-		arrival: string;
-		/** departure time */
-		departure: string;
-		/** transit vehicle serving this stop, if known */
 		vehicle?: string;
 		/** this stop's delay and its uncertainty in seconds, if known */
 		delay?: [number, number | undefined];

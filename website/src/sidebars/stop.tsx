@@ -8,7 +8,7 @@ import refresh_icon from "../assets/refresh.svg";
 import Loading from "../components/loading.tsx";
 import ScheduledStop from "../components/scheduled-stop.tsx";
 import { MapCtx } from "../pages/map.tsx";
-import { get_stop_schedule, StopSchedule } from "../api.ts";
+import { get_stop, StopSchedule } from "../api.ts";
 import { cmp } from "../util.ts";
 import style from "./stop.module.css";
 
@@ -39,7 +39,7 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 	useEffect(() => {
 		let valid = true;
 		setSchedule(null);
-		get_stop_schedule(system, id).then((s) => {
+		get_stop(system, id).then((s) => {
 			if (s === undefined) {
 				setSchedule("error");
 				return;
@@ -59,7 +59,7 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 		});
 
 		const int = setInterval(() => {
-			get_stop_schedule(system, id).then((s) => {
+			get_stop(system, id).then((s) => {
 				if (s !== undefined) {
 					setSchedule(s);
 				}
@@ -127,33 +127,33 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 				{schedule === null ? (
 					<Loading />
 				) : (
-					schedule.schedule
-						.filter((s) => filter === null || filter === s.name)
-						.map((s) => ({
-							...s,
-							arrival: Temporal.ZonedDateTime.from(s.arrival),
-							departure: Temporal.ZonedDateTime.from(s.departure),
+					schedule.arrivals
+						.filter((a) => filter === null || filter === a.name)
+						.map((a) => ({
+							...a,
+							arrival: Temporal.ZonedDateTime.from(a.arrival),
+							departure: Temporal.ZonedDateTime.from(a.departure),
 						}))
-						.map((s, i, a) => (
+						.map((v, i, a) => (
 							<>
 								{i === 0 ||
 								!a[i - 1].arrival
 									.toPlainDate()
-									.equals(s.arrival.toPlainDate()) ? (
-									<p key={s.arrival.toString()} class={style.date}>
-										{s.arrival.toPlainDate().toLocaleString()}
+									.equals(v.arrival.toPlainDate()) ? (
+									<p key={v.arrival.toString()} class={style.date}>
+										{v.arrival.toPlainDate().toLocaleString()}
 									</p>
 								) : null}
 
 								{(a[i - 1]?.arrival?.since(now)?.sign ??
-									s.arrival.since(now).sign) !== s.arrival.since(now).sign ? (
+									v.arrival.since(now).sign) !== v.arrival.since(now).sign ? (
 									<hr id={style.now} />
 								) : null}
 
 								<ScheduledStop
 									now={now}
-									stop={s}
-									onClick={() => navigate(`/${system}/line/${s.line}`)}
+									stop={v}
+									onClick={() => navigate(`/${system}/line/${v.line}`)}
 								/>
 							</>
 						))

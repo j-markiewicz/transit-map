@@ -8,8 +8,6 @@ import {
 	BasicSystemInfo,
 	Lazy,
 	Line,
-	LineSchedule,
-	LineSchedules,
 	LinesInfo,
 	RawGtfs,
 	RawRealtime,
@@ -40,7 +38,7 @@ export default class Data {
 			stops: undefined,
 			lines: undefined,
 			stop_schedules: undefined,
-			line_schedules: undefined,
+			services: undefined,
 		};
 	}
 
@@ -196,20 +194,22 @@ export default class Data {
 		return this.systems[system]?.stop_schedules?.then((s) => s[stop]?.get());
 	}
 
-	public get_line_schedule(
+	public get_line(
 		system: string,
 		line: string
-	): Promise<LineSchedule | undefined> | undefined {
-		const line_schedules = this.systems[system]?.line_schedules;
+	): Promise<Line | undefined> | undefined {
+		const lines = this.systems[system]?.lines;
 
-		if (line_schedules !== undefined) {
-			return line_schedules.then((s) => s[line]?.get());
+		if (lines !== undefined) {
+			return lines.then((l) => l.lines.find((l) => l.id === line));
 		} else if (this.systems[system] === undefined) {
 			return undefined;
 		}
 
-		this.systems[system].line_schedules = this.compute_line_schedules(system);
-		return this.systems[system]?.line_schedules?.then((s) => s[line]?.get());
+		this.systems[system].lines = this.compute_lines(system);
+		return this.systems[system]?.lines?.then((l) =>
+			l.lines.find((l) => l.id === line)
+		);
 	}
 
 	public get_shape(
@@ -697,7 +697,7 @@ export default class Data {
 					lon: 0,
 					lines: [],
 				}),
-				schedule: (st as RawGtfs["stop_times"])
+				arrivals: (st as RawGtfs["stop_times"])
 					.flatMap((st) => {
 						const lid = line_id(st.trip, trip_mappings);
 						const line = lines[lid];
@@ -792,184 +792,6 @@ export default class Data {
 		}
 
 		return stop_schedules;
-	}
-
-	private async compute_line_schedules(system: string): Promise<LineSchedules> {
-		console.debug(`computing line schedules for ${system}`);
-
-		if (this.systems[system] === undefined) {
-			throw new Error(`Transit system ${system} not found`);
-		}
-
-		const gtfs = await Promise.all(
-			Object.keys(this.systems[system].gtfs).map((gtfs) =>
-				this.fetch_or_cached_gtfs(system, gtfs)
-			)
-		);
-
-		const [trip_mappings, services, lines_arr] = await Promise.all([
-			this.get_trip_mappings(system),
-			this.get_services(system),
-			this.get_lines(system),
-		]);
-
-		const lines: { [line in string]?: Line } = Object.fromEntries(
-			lines_arr?.map((l) => [l.id, l]) ?? []
-		);
-
-		const gtfs_stop_times: { [line in string]?: RawGtfs["stop_times"] } = {};
-		for (const st of gtfs.flatMap((data) => data.stop_times)) {
-			if (gtfs_stop_times[line_id(st.trip, trip_mappings)] !== undefined) {
-				gtfs_stop_times[line_id(st.trip, trip_mappings)]?.push(st);
-			} else {
-				gtfs_stop_times[line_id(st.trip, trip_mappings)] = [st];
-			}
-		}
-
-		const stops: { [stop in string]?: RawGtfs["stops"][number] } =
-			Object.fromEntries(
-				gtfs.flatMap((data) => data.stops).map((s) => [s.id, s])
-			);
-
-		const rt = await Promise.all(
-			Object.entries(this.systems[system].realtime)
-				.filter(([_, rt]) => rt?.id !== undefined)
-				.map(([rt, _]) => this.fetch_or_cached_realtime(system, rt))
-		);
-
-		const rt_updates: {
-			[line in string]?: {
-				vehicle?: string;
-				updates: {
-					stop: number | string;
-					arrival?: {
-						delay?: number;
-						time?: number;
-						uncertainty?: number;
-					};
-					departure?: {
-						delay?: number;
-						time?: number;
-						uncertainty?: number;
-					};
-				}[];
-			};
-		} = Object.fromEntries(
-			rt
-				.map((rt) => rt.trip_updates)
-				.filter((upd) => upd !== undefined)
-				.flatMap((upd) =>
-					upd
-						.filter((u) => u.trip.trip !== undefined)
-						.map((u) => ({ ...u, line: trip_mappings[u.trip.trip!]?.line }))
-						.filter((u) => u.line !== undefined)
-						.map((u) => [u.line, u])
-				)
-		);
-
-		const line_schedules: LineSchedules = {};
-
-		for (const [lid, st] of Object.entries(gtfs_stop_times)) {
-			line_schedules[lid] = new Lazy(() => ({
-				...(lines[lid] ?? {
-					id: lid,
-					name: "???",
-					headsign: "",
-					color: undefined,
-					type: VehicleType.Other,
-					shape: [],
-					stops: [],
-				}),
-				schedule: (st as RawGtfs["stop_times"])
-					.flatMap((st) => {
-						const arrival_time = time(st.arrival);
-						const departure_time = time(st.departure);
-						const some_time = departure_time ?? arrival_time;
-
-						if (some_time === undefined) {
-							return [];
-						}
-
-						const start = Temporal.Now.zonedDateTimeISO("Etc/UTC")
-							.subtract({ days: 2 })
-							.subtract(some_time.round("days"));
-
-						const end = Temporal.Now.zonedDateTimeISO("Etc/UTC").add({
-							days: 8,
-						});
-
-						const is_in_range = (dt: Temporal.ZonedDateTime): boolean =>
-							start.since(dt).sign === -1 && end.since(dt).sign === 1;
-
-						if (trip_mappings[st.trip] === undefined) {
-							return [];
-						}
-
-						return (
-							services[trip_mappings[st.trip]!.service]
-								?.filter(is_in_range)
-								?.flatMap((date) => {
-									const arrival = date.add(
-										arrival_time === undefined ? some_time : arrival_time
-									);
-
-									const departure = date.add(
-										departure_time === undefined ? some_time : departure_time
-									);
-
-									const diff = (
-										dt: number | undefined,
-										st: Temporal.Duration | undefined
-									) => {
-										if (dt === undefined || st == undefined) {
-											return undefined;
-										}
-
-										return date
-											.add(st)
-											.toInstant()
-											.since(Temporal.Instant.fromEpochSeconds(dt)).seconds;
-									};
-
-									const upd = rt_updates[lid]?.updates.find(
-										(u) => u.stop === st.sequence || u.stop === st.stop
-									);
-
-									const delay =
-										upd?.departure?.delay ??
-										diff(upd?.departure?.time, departure_time) ??
-										upd?.arrival?.delay ??
-										diff(upd?.arrival?.time, arrival_time) ??
-										diff(upd?.departure?.time, some_time) ??
-										diff(upd?.arrival?.time, some_time);
-
-									const uncertainty =
-										upd?.departure?.uncertainty ?? upd?.arrival?.uncertainty;
-
-									return {
-										stop: st.stop,
-										stop_name: stops[st.stop]?.name ?? "???",
-										arrival,
-										departure,
-										vehicle: rt_updates[lid]?.vehicle,
-										delay:
-											delay !== undefined
-												? ([delay, uncertainty] as [number, number | undefined])
-												: undefined,
-									};
-								}) ?? []
-						);
-					})
-					.sort((a, b) => a.arrival.since(b.arrival).sign)
-					.map((s) => ({
-						...s,
-						arrival: s.arrival.toString(),
-						departure: s.departure.toString(),
-					})),
-			}));
-		}
-
-		return line_schedules;
 	}
 
 	private async compute_services(
@@ -1105,7 +927,6 @@ export default class Data {
 				this.systems[system].vehicles = undefined;
 				this.systems[system].lines = undefined;
 				this.systems[system].stop_schedules = undefined;
-				this.systems[system].line_schedules = undefined;
 				this.systems[system].services = undefined;
 				this.systems[system].stops = undefined;
 			}
@@ -1181,7 +1002,6 @@ export default class Data {
 				this.systems[system].alerts = undefined;
 				this.systems[system].vehicles = undefined;
 				this.systems[system].stop_schedules = undefined;
-				this.systems[system].line_schedules = undefined;
 			}
 		};
 
