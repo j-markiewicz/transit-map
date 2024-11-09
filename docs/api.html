@@ -34,141 +34,147 @@
 				preflight requests). No authorization is required for these endpoints.
 			</p>
 
-			<table class="data-api-endpoints">
-				<thead>
+			<div class="table-wrapper">
+				<table class="data-api-endpoints">
+					<thead>
+						<tr>
+							<th scope="col">URL path</th>
+							<th scope="col">Return type</th>
+							<th scope="col">Description</th>
+						</tr>
+					</thead>
 					<tr>
-						<th scope="col">URL path</th>
-						<th scope="col">Return type</th>
-						<th scope="col">Description</th>
+						<td>
+							<a onclick="try_api('')"><code>/</code></a>
+						</td>
+						<td>
+							<a href="types.html#basic-system-info"
+								><code>BasicSystemInfo[]</code></a
+							>
+						</td>
+						<td>
+							Ⓢ* Basic information about all transit systems, including their
+							names, locations, and number of GTFS Schedule and GTFS Realtime
+							data sources, stops, and lines.
+						</td>
 					</tr>
-				</thead>
-				<tr>
-					<td>
-						<a onclick="try_api('')"><code>/</code></a>
-					</td>
-					<td>
-						<a href="types.html#basic-system-info"
-							><code>BasicSystemInfo[]</code></a
-						>
-					</td>
-					<td>
-						Ⓢ* Basic information about all transit systems, including their
-						names, locations, and number of GTFS Schedule and GTFS Realtime data
-						sources, stops, and lines.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków')"><code>/:system</code></a>
-					</td>
-					<td>
-						<a href="types.html#basic-system-info"
-							><code>BasicSystemInfo</code></a
-						>
-					</td>
-					<td>
-						Ⓢ* Basic information about the transit system
-						<code>:system</code>.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/alerts')"
-							><code>/:system/alerts</code></a
-						>
-					</td>
-					<td>
-						<a href="types.html#alert"><code>Alert[]</code></a>
-					</td>
-					<td>
-						Ⓡ Any active or scheduled alerts about the transit system
-						<code>:system</code>.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/vehicles')"
-							><code>/:system/vehicles</code></a
-						>
-					</td>
-					<td>
-						<a href="types.html#vehicle"><code>Vehicle[]</code></a>
-					</td>
-					<td>
-						Ⓡ Real-time location information about all transit vehicles in
-						<code>:system</code> for which this data is available.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/stops')"><code>/:system/stops</code></a>
-					</td>
-					<td>
-						<a href="types.html#stop"><code>Stop[]</code></a>
-					</td>
-					<td>
-						Ⓢ All transit stops in <code>:system</code>. Multiple stops may
-						share the same name (but not id), for example if they are adjacent
-						stops on opposite sides of the street.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/lines')"><code>/:system/lines</code></a>
-					</td>
-					<td>
-						<a href="types.html#line"><code>Line[]</code></a>
-					</td>
-					<td>
-						Ⓢ All transit lines in <code>:system</code>. A transit line is
-						defined by a name (e.g. <em>218</em>), headsign (e.g.
-						<em>Bronowice Małe</em>), and a sequence of stops. Often, transit
-						routes operate with the same name in opposite directions, or even
-						with the same name and headsign, but with different routings - in
-						these cases each of these routings would be considered a different
-						line. In GTFS terms, a <em>line</em> is somewhere in between a
-						<em>route</em> and a <em>trip</em>.
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/line/218-azli6WxWL3YiWsqf')"
-							><code>/:system/line/:line</code></a
-						>
-					</td>
-					<td>
-						<a href="types.html#line"><code>Line</code></a>
-					</td>
-					<td>Ⓢ Information about transit line <code>:line</code>.</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/stop/a-stop_170_22202')"
-							><code>/:system/stop/:stop</code></a
-						>
-					</td>
-					<td>
-						<a href="types.html#stop-schedule"><code>StopSchedule</code></a>
-					</td>
-					<td>Ⓡ Schedule information for transit stop <code>:stop</code>.</td>
-				</tr>
-				<tr>
-					<td>
-						<a onclick="try_api('Kraków/shape/a-shape_3440')"
-							><code>/:system/shape/:shape</code></a
-						>
-					</td>
-					<td>
-						<a href="https://www.rfc-editor.org/rfc/rfc7946#section-3.1.4"
-							><code>LineString</code></a
-						>
-					</td>
-					<td>
-						Ⓢ A GeoJSON description of the geographic shape
-						<code>:shape</code> of a transit line.
-					</td>
-				</tr>
-			</table>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków')"><code>/:system</code></a>
+						</td>
+						<td>
+							<a href="types.html#basic-system-info"
+								><code>BasicSystemInfo</code></a
+							>
+						</td>
+						<td>
+							Ⓢ* Basic information about the transit system
+							<code>:system</code>.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/alerts')"
+								><code>/:system/alerts</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#alert"><code>Alert[]</code></a>
+						</td>
+						<td>
+							Ⓡ Any active or scheduled alerts about the transit system
+							<code>:system</code>.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/vehicles')"
+								><code>/:system/vehicles</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#vehicle"><code>Vehicle[]</code></a>
+						</td>
+						<td>
+							Ⓡ Real-time location information about all transit vehicles in
+							<code>:system</code> for which this data is available.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/stops')"
+								><code>/:system/stops</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#stop"><code>Stop[]</code></a>
+						</td>
+						<td>
+							Ⓢ All transit stops in <code>:system</code>. Multiple stops may
+							share the same name (but not id), for example if they are adjacent
+							stops on opposite sides of the street.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/lines')"
+								><code>/:system/lines</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#line"><code>Line[]</code></a>
+						</td>
+						<td>
+							Ⓢ All transit lines in <code>:system</code>. A transit line is
+							defined by a name (e.g. <em>218</em>), headsign (e.g.
+							<em>Bronowice Małe</em>), and a sequence of stops. Often, transit
+							routes operate with the same name in opposite directions, or even
+							with the same name and headsign, but with different routings - in
+							these cases each of these routings would be considered a different
+							line. In GTFS terms, a <em>line</em> is somewhere in between a
+							<em>route</em> and a <em>trip</em>.
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/line/218-azli6WxWL3YiWsqf')"
+								><code>/:system/line/:line</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#line"><code>Line</code></a>
+						</td>
+						<td>Ⓢ Information about transit line <code>:line</code>.</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/stop/a-stop_170_22202')"
+								><code>/:system/stop/:stop</code></a
+							>
+						</td>
+						<td>
+							<a href="types.html#stop-schedule"><code>StopSchedule</code></a>
+						</td>
+						<td>Ⓡ Schedule information for transit stop <code>:stop</code>.</td>
+					</tr>
+					<tr>
+						<td>
+							<a onclick="try_api('Kraków/shape/a-shape_3440')"
+								><code>/:system/shape/:shape</code></a
+							>
+						</td>
+						<td>
+							<a href="https://www.rfc-editor.org/rfc/rfc7946#section-3.1.4"
+								><code>LineString</code></a
+							>
+						</td>
+						<td>
+							Ⓢ A GeoJSON description of the geographic shape
+							<code>:shape</code> of a transit line.
+						</td>
+					</tr>
+				</table>
+			</div>
 
 			<p>
 				Endpoints marked with Ⓡ are based (at least partially) on GTFS Realtime
@@ -208,72 +214,74 @@
 				<code>POST</code> and <code>PUT</code> requests.
 			</p>
 
-			<table class="config-api-endpoints">
-				<thead>
+			<div class="table-wrapper">
+				<table class="config-api-endpoints">
+					<thead>
+						<tr>
+							<th scope="col">Method</th>
+							<th scope="col">URL path</th>
+							<th scope="col">Request type</th>
+							<th scope="col">Return type</th>
+							<th scope="col">Description</th>
+						</tr>
+					</thead>
 					<tr>
-						<th scope="col">Method</th>
-						<th scope="col">URL path</th>
-						<th scope="col">Request type</th>
-						<th scope="col">Return type</th>
-						<th scope="col">Description</th>
+						<td>
+							<code>GET</code>
+						</td>
+						<td>
+							<a onclick="try_api('Kraków/config')"
+								><code>/:system/config</code></a
+							>
+						</td>
+						<td>-</td>
+						<td>
+							<a href="types.html#system-config-with-metadata"
+								><code>SystemConfigWithMetadata</code></a
+							>
+						</td>
+						<td>
+							Configuration for the transit system <code>:system</code> and
+							whether the requesting user can edit this configuration (always
+							<code>false</code> if no credentials were sent in the request)
+						</td>
 					</tr>
-				</thead>
-				<tr>
-					<td>
-						<code>GET</code>
-					</td>
-					<td>
-						<a onclick="try_api('Kraków/config')"
-							><code>/:system/config</code></a
-						>
-					</td>
-					<td>-</td>
-					<td>
-						<a href="types.html#system-config-with-metadata"
-							><code>SystemConfigWithMetadata</code></a
-						>
-					</td>
-					<td>
-						Configuration for the transit system <code>:system</code> and
-						whether the requesting user can edit this configuration (always
-						<code>false</code> if no credentials were sent in the request)
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<code>PUT</code>
-					</td>
-					<td>
-						<code>/:system/config</code>
-					</td>
-					<td>
-						<a href="types.html#system-config"><code>SystemConfig</code></a>
-					</td>
-					<td>-</td>
-					<td>
-						Overwrite the configuration for the existing transit system
-						<code>:system</code>
-					</td>
-				</tr>
-				<tr>
-					<td>
-						<code>POST</code>
-					</td>
-					<td>
-						<code>/new</code>
-					</td>
-					<td>
-						<a href="types.html#system-config-with-name"
-							><code>SystemConfigWithName</code></a
-						>
-					</td>
-					<td>-</td>
-					<td>
-						Create a new transit system with the given configuration and name
-						(fails if a transit system with that name already exists)
-					</td>
-				</tr>
-			</table>
+					<tr>
+						<td>
+							<code>PUT</code>
+						</td>
+						<td>
+							<code>/:system/config</code>
+						</td>
+						<td>
+							<a href="types.html#system-config"><code>SystemConfig</code></a>
+						</td>
+						<td>-</td>
+						<td>
+							Overwrite the configuration for the existing transit system
+							<code>:system</code>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>POST</code>
+						</td>
+						<td>
+							<code>/new</code>
+						</td>
+						<td>
+							<a href="types.html#system-config-with-name"
+								><code>SystemConfigWithName</code></a
+							>
+						</td>
+						<td>-</td>
+						<td>
+							Create a new transit system with the given configuration and name
+							(fails if a transit system with that name already exists)
+						</td>
+					</tr>
+				</table>
+			</div>
 
 			<h2>Authentication tokens</h2>
 

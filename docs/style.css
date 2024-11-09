@@ -1,5 +1,7 @@
 :root {
+	min-width: 300px;
 	color-scheme: light dark;
+
 	--fonts: "Noto Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
 		"Roboto", "Oxygen", "Ubuntu", "Cantarell", "Open Sans", "Helvetica Neue",
 		sans-serif;
@@ -28,6 +30,7 @@ body {
 main {
 	display: block;
 	margin: 0 auto;
+	padding: 0 1rem;
 	max-width: 100ch;
 }
 
@@ -42,6 +45,7 @@ pre {
 pre {
 	min-height: 2rem;
 	padding: 0.5rem;
+	overflow-x: scroll;
 }
 
 a {
@@ -51,6 +55,10 @@ a {
 
 h2 {
 	margin: 2rem 0 1rem 0;
+}
+
+ol {
+	padding: 0 0 0 5ch;
 }
 
 li {
@@ -65,6 +73,7 @@ button {
 	outline: none;
 	border-radius: 0.5rem;
 	cursor: pointer;
+	text-wrap: nowrap;
 }
 
 table {
@@ -84,11 +93,21 @@ th {
 	top: -1px;
 }
 
+.table-wrapper {
+	overflow-x: scroll;
+	width: 0;
+	min-width: 100%;
+}
+
 .data-api-endpoints td:nth-child(1),
 .data-api-endpoints td:nth-child(2) {
 	text-align: end;
 	text-wrap: nowrap;
 	width: fit-content;
+}
+
+.data-api-endpoints td:nth-child(3) {
+	min-width: 30ch;
 }
 
 .config-api-endpoints td:nth-child(1) {
@@ -103,6 +122,10 @@ th {
 	text-align: end;
 	text-wrap: nowrap;
 	width: fit-content;
+}
+
+.config-api-endpoints td:nth-child(5) {
+	min-width: 30ch;
 }
 
 .inline-img {
@@ -162,5 +185,25 @@ th {
 		--bg-grey: #1e2329;
 		--bg-color: #0d1117;
 		--link-color: #4493f8;
+	}
+}
+
+@media (max-width: 500px) {
+	:root {
+		font-size: 14px;
+	}
+
+	ul {
+		padding: 0 0 0 2rem;
+	}
+}
+
+@media (max-width: 350px) {
+	:root {
+		font-size: 12px;
+	}
+
+	ul {
+		padding: 0 0 0 1.5rem;
 	}
 }
