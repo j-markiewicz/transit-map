@@ -412,22 +412,14 @@ export default class Data {
 				const line = lines[lid];
 
 				if (stop_lines[st.stop] === undefined) {
-					stop_lines[st.stop] = [
-						{
-							id: lid,
-							name: line?.name ?? "???",
-							headsign: line?.headsign ?? "",
-							type: line?.type ?? VehicleType.Other,
-						},
-					];
-				} else if (stop_lines[st.stop]?.every((s) => s.id !== lid)) {
-					stop_lines[st.stop]?.push({
-						id: lid,
-						name: line?.name ?? "???",
-						headsign: line?.headsign ?? "",
-						type: line?.type ?? VehicleType.Other,
-					});
+					stop_lines[st.stop] = {};
 				}
+
+				stop_lines[st.stop]![lid] = {
+					name: line?.name ?? "???",
+					headsign: line?.headsign ?? "",
+					type: line?.type ?? VehicleType.Other,
+				};
 
 				if (line === undefined) {
 					return;
@@ -457,7 +449,7 @@ export default class Data {
 			),
 			lat: stop.lat,
 			lon: stop.lon,
-			lines: stop_lines[stop.id] ?? [],
+			lines: stop_lines[stop.id] ?? {},
 		}));
 	}
 
@@ -637,16 +629,11 @@ export default class Data {
 
 		const calendar = Object.fromEntries(gtfs_calendar.map((c) => [c?.id, c]));
 
-		const [trip_mappings, services, lines_arr, stops_arr] = await Promise.all([
+		const [trip_mappings, services, stops_arr] = await Promise.all([
 			this.get_trip_mappings(system),
 			this.get_services(system),
-			this.get_lines(system),
 			this.get_stops(system),
 		]);
-
-		const lines: { [line in string]?: Line } = Object.fromEntries(
-			lines_arr?.map((l) => [l.id, l]) ?? []
-		);
 
 		const stops: { [stop in string]?: Stop } = Object.fromEntries(
 			stops_arr?.map((s) => [s.id, s]) ?? []
@@ -773,7 +760,6 @@ export default class Data {
 
 				const arrivals = (st ?? []).flatMap((st) => {
 					const lid = line_id(st.trip, trip_mappings);
-					const line = lines[lid];
 
 					const arrival_time = time(st.arrival);
 					const departure_time = time(st.departure);
@@ -841,9 +827,6 @@ export default class Data {
 
 								return {
 									line: lid,
-									name: line?.name ?? "???",
-									headsign: line?.headsign ?? "",
-									type: line?.type ?? VehicleType.Other,
 									arrival,
 									departure,
 									vehicle: rt_updates[lid]?.vehicle,
@@ -863,7 +846,7 @@ export default class Data {
 						types: [],
 						lat: 0,
 						lon: 0,
-						lines: [],
+						lines: {},
 					}),
 					schedule: {
 						additional: gtfs_calendar_dates

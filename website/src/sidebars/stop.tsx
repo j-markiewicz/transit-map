@@ -104,7 +104,7 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 
 			{schedule === null ? null : (
 				<div class={style.lines}>
-					{[...new Set(schedule.lines.map((l) => l.name))]
+					{[...new Set(Object.values(schedule.lines).map((l) => l!.name))]
 						.sort((a, b) => cmp([a], [b]))
 						.map((l) => (
 							<span
@@ -128,7 +128,9 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 					<Loading />
 				) : (
 					schedule.arrivals
-						.filter((a) => filter === null || filter === a.name)
+						.filter(
+							(a) => filter === null || filter === schedule.lines[a.line]?.name
+						)
 						.map((a) => ({
 							...a,
 							arrival: Temporal.ZonedDateTime.from(a.arrival),
@@ -152,7 +154,8 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 
 								<ScheduledStop
 									now={now}
-									stop={v}
+									key={`${v.line}-${v.arrival}-${v.departure}`}
+									stop={{ ...schedule.lines[v.line]!, ...v }}
 									onClick={() => navigate(`/${system}/line/${v.line}`)}
 								/>
 							</>

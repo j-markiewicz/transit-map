@@ -229,15 +229,15 @@ export type Stop = {
 	lon: number;
 	/** lines that stop at this stop */
 	lines: {
-		/** identifier of the line */
-		id: string;
-		/** user-facing name of the line */
-		name: string;
-		/** headsign of the line */
-		headsign: string;
-		/** type of vehicle used on this line */
-		type: VehicleType;
-	}[];
+		[line in string]?: {
+			/** user-facing name of the line */
+			name: string;
+			/** headsign of the line */
+			headsign: string;
+			/** type of vehicle used on this line */
+			type: VehicleType;
+		};
+	};
 };
 
 /** a vehicle */
@@ -318,12 +318,6 @@ export type StopSchedule = Stop & {
 	arrivals: {
 		/** transit line stopping at this stop */
 		line: string;
-		/** the line's name */
-		name: string;
-		/** the line's headsign */
-		headsign: string;
-		/** the line's type */
-		type: VehicleType;
 		/** arrival time */
 		arrival: string;
 		/** departure time */

@@ -194,7 +194,9 @@ export default class Map extends Component<
 
 				for (const stop of stops) {
 					this.stops[stop.id] = L.marker([stop.lat, stop.lon], {
-						title: `${stop.name} (${[...new Set(stop.lines.map((l) => l.name))]
+						title: `${stop.name} (${[
+							...new Set(Object.values(stop.lines).map((l) => l!.name)),
+						]
 							.sort()
 							.sort((a, b) => a.length - b.length)
 							.join(", ")})`,

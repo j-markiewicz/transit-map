@@ -182,17 +182,14 @@
 						<code>lon</code> (<code>number</code>) - Longitude of this stop
 					</li>
 					<li>
-						<code>lines</code> (<code>object[]</code>) - An array of objects
-						describing transit lines that stop at this stop (see below)
+						<code>lines</code> (<code>object</code>) - An object with line IDs
+						as keys and objects describing transit lines that stop at this stop
+						as values (see below)
 					</li>
 				</ul>
 
-				<h3>Properties of the objects in <code>lines</code>:</h3>
+				<h3>Properties of the objects in the <code>lines</code> object:</h3>
 				<ul>
-					<li>
-						<code>id</code> (<code>string</code>) - Unique identifier of this
-						line
-					</li>
 					<li>
 						<code>name</code> (<code>string</code>) - User-facing name of this
 						line
@@ -328,8 +325,8 @@
 						<a href="https://tc39.es/proposal-temporal/docs/plaindate.html"
 							><code>Temporal.PlainDate</code></a
 						>
-						string format) on which service may be removed or reduced at
-						this stop
+						string format) on which service may be removed or reduced at this
+						stop
 					</li>
 					<li>
 						<code>monday</code> (<code>object</code>) - Mondays' schedule (see
@@ -380,18 +377,6 @@
 					<li>
 						<code>line</code> (<code>string</code>) - Unique ID of the line
 						stopping at this stop
-					</li>
-					<li>
-						<code>name</code> (<code>string</code>) - The line's user-facing
-						name
-					</li>
-					<li>
-						<code>headsign</code> (<code>string</code>) - The line's headsign
-					</li>
-					<li>
-						<code>type</code> (<code
-							><a href="#vehicle-type">VehicleType</a></code
-						>) - The line's vehicle type
 					</li>
 					<li>
 						<code>arrival</code> (<code>string</code>) - Arrival time (in the

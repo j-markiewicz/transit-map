@@ -201,7 +201,10 @@ async function stops(
 									system={system}
 									id={s.id}
 									name={s.name}
-									lines={s.lines}
+									lines={Object.entries(s.lines).map(([k, v]) => ({
+										id: k,
+										...v!,
+									}))}
 								/>
 							))}
 					</StopGroup>
