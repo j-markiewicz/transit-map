@@ -632,6 +632,11 @@ export default class Data {
 			}
 		}
 
+		const gtfs_calendar = gtfs.flatMap((gtfs) => gtfs.calendar);
+		const gtfs_calendar_dates = gtfs.flatMap((gtfs) => gtfs.calendar_dates);
+
+		const calendar = Object.fromEntries(gtfs_calendar.map((c) => [c?.id, c]));
+
 		const [trip_mappings, services, lines_arr, stops_arr] = await Promise.all([
 			this.get_trip_mappings(system),
 			this.get_services(system),
@@ -687,108 +692,209 @@ export default class Data {
 			[stop in string]?: Lazy<StopSchedule>;
 		} = {};
 
+		const noon = Temporal.PlainTime.from("12:00:00");
 		for (const [stop, st] of Object.entries(gtfs_stop_times)) {
-			stop_schedules[stop] = new Lazy(() => ({
-				...(stops[stop] ?? {
-					id: stop,
-					name: "???",
-					types: [],
-					lat: 0,
-					lon: 0,
-					lines: [],
-				}),
-				arrivals: (st as RawGtfs["stop_times"])
-					.flatMap((st) => {
-						const lid = line_id(st.trip, trip_mappings);
-						const line = lines[lid];
+			stop_schedules[stop] = new Lazy(() => {
+				const schedule_init: {
+					[line in string]?: [Temporal.PlainTime, string][];
+				}[] = [{}, {}, {}, {}, {}, {}, {}];
 
-						const arrival_time = time(st.arrival);
-						const departure_time = time(st.departure);
-						const some_time = departure_time ?? arrival_time;
+				for (const s of st ?? []) {
+					const times_raw = [time(s.arrival), time(s.departure)];
 
-						if (some_time === undefined) {
-							return [];
+					if (times_raw.some((t) => t === undefined)) {
+						continue;
+					}
+
+					const line = trip_mappings[s.trip];
+
+					if (line === undefined) {
+						continue;
+					}
+
+					const cal = calendar[line.service];
+
+					if (cal === undefined) {
+						continue;
+					}
+
+					const times = [noon.add(times_raw[0]!), noon.add(times_raw[1]!)];
+					const extra_days = [
+						Math.floor(times_raw[0]!.add({ hours: 12 }).total("days")),
+						Math.floor(times_raw[1]!.add({ hours: 12 }).total("days")),
+					];
+					const diff_days = extra_days[1] - extra_days[0];
+
+					const add_day = (day_base: number) => {
+						const day = (day_base + extra_days[0]) % 7;
+
+						if (schedule_init[day]?.[line.line] === undefined) {
+							schedule_init[day][line.line] = [];
 						}
 
-						const start = Temporal.Now.zonedDateTimeISO("Etc/UTC")
-							.subtract({ days: 2 })
-							.subtract(some_time.round("days"));
+						schedule_init[day][line.line]!.push([
+							times[0],
+							diff_days === 0
+								? times[1].toString()
+								: `${times[1].toString()} +${diff_days}`,
+						]);
+					};
 
-						const end = Temporal.Now.zonedDateTimeISO("Etc/UTC").add({
-							days: 8,
-						});
+					if (cal.monday) add_day(0);
+					if (cal.tuesday) add_day(1);
+					if (cal.wednesday) add_day(2);
+					if (cal.thursday) add_day(3);
+					if (cal.friday) add_day(4);
+					if (cal.saturday) add_day(5);
+					if (cal.sunday) add_day(6);
+				}
 
-						const is_in_range = (dt: Temporal.ZonedDateTime): boolean =>
-							start.since(dt).sign === -1 && end.since(dt).sign === 1;
+				for (const day of schedule_init) {
+					for (const line of Object.values(day).filter(
+						(l) => l !== undefined
+					)) {
+						line.sort((a, b) => a[0].since(b[0]).total("seconds"));
+					}
+				}
 
-						if (trip_mappings[st.trip] === undefined) {
-							return [];
-						}
+				const schedule: { [line in string]?: [string, string][] }[] =
+					schedule_init.map((day) =>
+						Object.fromEntries(
+							Object.entries(day).map(([k, v]) => [
+								k,
+								v?.map((line) => [line[0].toString(), line[1]]),
+							])
+						)
+					);
 
-						return (
-							services[trip_mappings[st.trip]!.service]
-								?.filter(is_in_range)
-								?.flatMap((date) => {
-									const arrival = date.add(
-										arrival_time === undefined ? some_time : arrival_time
-									);
+				const services_at_this_stop = [
+					...new Set(st?.map((st) => trip_mappings[st.trip]?.service)),
+				].filter((s) => s !== undefined);
 
-									const departure = date.add(
-										departure_time === undefined ? some_time : departure_time
-									);
+				const arrivals = (st ?? []).flatMap((st) => {
+					const lid = line_id(st.trip, trip_mappings);
+					const line = lines[lid];
 
-									const diff = (
-										dt: number | undefined,
-										st: Temporal.Duration | undefined
-									) => {
-										if (dt === undefined || st == undefined) {
-											return undefined;
-										}
+					const arrival_time = time(st.arrival);
+					const departure_time = time(st.departure);
+					const some_time = departure_time ?? arrival_time;
 
-										return date
-											.add(st)
-											.toInstant()
-											.since(Temporal.Instant.fromEpochSeconds(dt)).seconds;
-									};
+					if (some_time === undefined) {
+						return [];
+					}
 
-									const upd = rt_updates[lid]?.updates?.find(
-										(u) => u.stop === st.sequence || u.stop === st.stop
-									);
+					const start = Temporal.Now.zonedDateTimeISO("Etc/UTC")
+						.subtract({ days: 2 })
+						.subtract(some_time.round("days"));
 
-									const delay =
-										upd?.departure?.delay ??
-										diff(upd?.departure?.time, departure_time) ??
-										upd?.arrival?.delay ??
-										diff(upd?.arrival?.time, arrival_time) ??
-										diff(upd?.departure?.time, some_time) ??
-										diff(upd?.arrival?.time, some_time);
+					const end = Temporal.Now.zonedDateTimeISO("Etc/UTC").add({
+						days: 8,
+					});
 
-									const uncertainty =
-										upd?.departure?.uncertainty ?? upd?.arrival?.uncertainty;
+					const is_in_range = (dt: Temporal.ZonedDateTime): boolean =>
+						start.since(dt).sign === -1 && end.since(dt).sign === 1;
 
-									return {
-										line: lid,
-										name: line?.name ?? "???",
-										headsign: line?.headsign ?? "",
-										type: line?.type ?? VehicleType.Other,
-										arrival,
-										departure,
-										vehicle: rt_updates[lid]?.vehicle,
-										delay:
-											delay !== undefined
-												? ([delay, uncertainty] as [number, number | undefined])
-												: undefined,
-									};
-								}) ?? []
-						);
-					})
-					.sort((a, b) => a.arrival.since(b.arrival).sign)
-					.map((s) => ({
-						...s,
-						arrival: s.arrival.toString(),
-						departure: s.departure.toString(),
-					})),
-			}));
+					if (trip_mappings[st.trip] === undefined) {
+						return [];
+					}
+
+					return (
+						services[trip_mappings[st.trip]!.service]
+							?.filter(is_in_range)
+							?.flatMap((date) => {
+								const arrival = date.add(
+									arrival_time === undefined ? some_time : arrival_time
+								);
+
+								const departure = date.add(
+									departure_time === undefined ? some_time : departure_time
+								);
+
+								const diff = (
+									dt: number | undefined,
+									st: Temporal.Duration | undefined
+								) => {
+									if (dt === undefined || st == undefined) {
+										return undefined;
+									}
+
+									return date
+										.add(st)
+										.toInstant()
+										.since(Temporal.Instant.fromEpochSeconds(dt)).seconds;
+								};
+
+								const upd = rt_updates[lid]?.updates?.find(
+									(u) => u.stop === st.sequence || u.stop === st.stop
+								);
+
+								const delay =
+									upd?.departure?.delay ??
+									diff(upd?.departure?.time, departure_time) ??
+									upd?.arrival?.delay ??
+									diff(upd?.arrival?.time, arrival_time) ??
+									diff(upd?.departure?.time, some_time) ??
+									diff(upd?.arrival?.time, some_time);
+
+								const uncertainty =
+									upd?.departure?.uncertainty ?? upd?.arrival?.uncertainty;
+
+								return {
+									line: lid,
+									name: line?.name ?? "???",
+									headsign: line?.headsign ?? "",
+									type: line?.type ?? VehicleType.Other,
+									arrival,
+									departure,
+									vehicle: rt_updates[lid]?.vehicle,
+									delay:
+										delay !== undefined
+											? ([delay, uncertainty] as [number, number | undefined])
+											: undefined,
+								};
+							}) ?? []
+					);
+				});
+
+				return {
+					...(stops[stop] ?? {
+						id: stop,
+						name: "???",
+						types: [],
+						lat: 0,
+						lon: 0,
+						lines: [],
+					}),
+					schedule: {
+						additional: gtfs_calendar_dates
+							.filter((d) => d?.type === "added")
+							.filter((d) => services_at_this_stop.includes(d!.id))
+							.map((d) => date(d!.date))
+							.sort((a, b) => a.since(b).total("days"))
+							.map((d) => d.toString()),
+						removed: gtfs_calendar_dates
+							.filter((d) => d?.type === "removed")
+							.filter((d) => services_at_this_stop.includes(d!.id))
+							.map((d) => date(d!.date))
+							.sort((a, b) => a.since(b).total("days"))
+							.map((d) => d.toString()),
+						monday: schedule[0],
+						tuesday: schedule[1],
+						wednesday: schedule[2],
+						thursday: schedule[3],
+						friday: schedule[4],
+						saturday: schedule[5],
+						sunday: schedule[6],
+					},
+					arrivals: arrivals
+						.sort((a, b) => a.arrival.since(b.arrival).sign)
+						.map((s) => ({
+							...s,
+							arrival: s.arrival.toString(),
+							departure: s.departure.toString(),
+						})),
+				};
+			});
 		}
 
 		return stop_schedules;

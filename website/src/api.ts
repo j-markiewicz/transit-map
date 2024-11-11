@@ -293,6 +293,27 @@ export type Line = {
 
 /** information about a stop and its schedule */
 export type StopSchedule = Stop & {
+	/** this stop's schedule */
+	schedule: {
+		/** dates on which there are additional services */
+		additional: string[];
+		/** dates on which service may be removed or reduces */
+		removed: string[];
+		/** monday's schedule (times at which a line stops at this stop) */
+		monday: { [line in string]?: [string, string][] };
+		/** tuesday's schedule (times at which a line stops at this stop) */
+		tuesday: { [line in string]?: [string, string][] };
+		/** wednesday's schedule (times at which a line stops at this stop) */
+		wednesday: { [line in string]?: [string, string][] };
+		/** thursday's schedule (times at which a line stops at this stop) */
+		thursday: { [line in string]?: [string, string][] };
+		/** friday's schedule (times at which a line stops at this stop) */
+		friday: { [line in string]?: [string, string][] };
+		/** saturday's schedule (times at which a line stops at this stop) */
+		saturday: { [line in string]?: [string, string][] };
+		/** sunday's schedule (times at which a line stops at this stop) */
+		sunday: { [line in string]?: [string, string][] };
+	};
 	/** this stop's scheduled arrivals */
 	arrivals: {
 		/** transit line stopping at this stop */

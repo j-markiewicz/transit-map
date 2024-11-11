@@ -303,10 +303,77 @@
 						>)
 					</li>
 					<li>
+						<code>schedule</code> (<code>object</code>) - An object describing
+						this stop's schedule (see below)
+					</li>
+					<li>
 						<code>arrivals</code> (<code>object[]</code>) - An array of objects
 						describing stops at this transit stop (see below)
 					</li>
 				</ul>
+
+				<h3>Properties of the <code>schedule</code> object:</h3>
+				<ul>
+					<li>
+						<code>additional</code> (<code>string[]</code>) - An array of dates
+						(in the
+						<a href="https://tc39.es/proposal-temporal/docs/plaindate.html"
+							><code>Temporal.PlainDate</code></a
+						>
+						string format) on which there may be additional service at this stop
+					</li>
+					<li>
+						<code>removed</code> (<code>string[]</code>) - An array of dates (in
+						the
+						<a href="https://tc39.es/proposal-temporal/docs/plaindate.html"
+							><code>Temporal.PlainDate</code></a
+						>
+						string format) on which service may be removed or reduced at
+						this stop
+					</li>
+					<li>
+						<code>monday</code> (<code>object</code>) - Mondays' schedule (see
+						below)
+					</li>
+					<li>
+						<code>tuesday</code> (<code>object</code>) - Tuesdays' schedule (see
+						below)
+					</li>
+					<li>
+						<code>wednesday</code> (<code>object</code>) - Wednesdays' schedule
+						(see below)
+					</li>
+					<li>
+						<code>thursday</code> (<code>object</code>) - Thursdays' schedule
+						(see below)
+					</li>
+					<li>
+						<code>friday</code> (<code>object</code>) - Fridays' schedule (see
+						below)
+					</li>
+					<li>
+						<code>saturday</code> (<code>object</code>) - Saturdays' schedule
+						(see below)
+					</li>
+					<li>
+						<code>sunday</code> (<code>object</code>) - Sundays' schedule (see
+						below)
+					</li>
+				</ul>
+
+				<p>
+					A schedule for the purposes of the above list is an object with line
+					IDs as keys and arrays of arrival time - departure time pairs
+					(two-element arrays of strings, in the
+					<a href="https://tc39.es/proposal-temporal/docs/plaintime.html"
+						><code>Temporal.PlainTime</code></a
+					>
+					string format - though the departure time may optionally end with
+					<code>" +N"</code> where N is a positive integer indicating the number
+					of extra days since the schedule day, e.g. <code>" +1"</code> when the
+					departure time is on the day after the arrival time) as values
+					describing each line's schedule at this stop on a given weekday.
+				</p>
 
 				<h3>Properties of the objects in <code>arrivals</code>:</h3>
 				<ul>
