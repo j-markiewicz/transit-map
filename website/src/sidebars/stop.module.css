@@ -52,13 +52,41 @@
 	margin: 0 auto;
 }
 
+.tabs {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: auto auto 1fr;
+	grid-template-areas: ". ." "lines lines" "content content";
+	flex-shrink: 1;
+	overflow-y: hidden;
+}
+
+.tab {
+	text-align: center;
+	height: 1.5rem;
+	border-radius: 1rem 1rem 0 0;
+	border: 1px var(--fg-color) solid;
+}
+
+.tab.current {
+	border-bottom: none;
+	font-weight: bold;
+}
+
+.tab:not(.current):hover {
+	cursor: pointer;
+	background-color: var(--bg-grey);
+}
+
 .lines {
+	grid-area: lines;
 	z-index: 1000002;
 	display: flex;
 	flex-shrink: 0;
 	flex-direction: row;
 	flex-wrap: nowrap;
 	overflow-x: scroll;
+	overflow-y: hidden;
 	scrollbar-width: none;
 	align-items: center;
 	height: 2rem;
@@ -94,11 +122,13 @@
 }
 
 .content {
+	grid-area: content;
 	display: flex;
 	flex-direction: column;
 	gap: 0.5rem;
 	overflow-y: scroll;
 	scrollbar-width: thin;
+	margin: 0 0 1rem 0;
 }
 
 .date {
@@ -128,4 +158,58 @@
 
 #now {
 	margin: 0 1rem;
+}
+
+.schedulewrapper {
+	display: block;
+	margin: 0.5rem 1rem;
+}
+
+.scheduleheader {
+	margin: 0.5rem 0;
+	padding: 0;
+	font-size: 1.2rem;
+	font-weight: bold;
+}
+
+.scheduletable {
+	overflow-x: scroll;
+}
+
+.scheduletable > table {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+.scheduletable td,
+.scheduletable th {
+	border: 1px var(--fg-grey) solid;
+	border-radius: 0.5rem;
+}
+
+.scheduletable > table > thead > th {
+	text-align: center;
+}
+
+.scheduletable > table > tbody th {
+	position: sticky;
+	padding: 0.1rem 0.5ch;
+	left: -1px;
+	background-color: var(--bg-color);
+}
+
+.scheduletable > table > tbody > tr > td > span {
+	padding: 0.1rem 0.5ch;
+}
+
+.noteheading {
+	margin: 0;
+	padding: 0.1rem 1rem;
+	font-size: 1rem;
+	font-weight: bold;
+}
+
+.note {
+	margin: 0;
+	padding: 0 1rem;
 }
