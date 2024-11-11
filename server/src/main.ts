@@ -147,7 +147,7 @@ app.get("/api/:system/config", async (req, res) => {
 	}
 });
 
-app.put("/api/new", async (req, res) => {
+app.post("/api/new", async (req, res) => {
 	try {
 		const token = req.header("Authorization");
 
