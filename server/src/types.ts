@@ -338,6 +338,15 @@ export type LinesInfo = {
 	trip_mappings: { [key in string]?: { line: string; service: string } };
 };
 
+export type Weekday =
+	| "monday"
+	| "tuesday"
+	| "wednesday"
+	| "thursday"
+	| "friday"
+	| "saturday"
+	| "sunday";
+
 /** information about a stop and its schedule */
 export type StopSchedule = Stop & {
 	/** this stop's schedule */
@@ -346,20 +355,13 @@ export type StopSchedule = Stop & {
 		additional: string[];
 		/** dates on which service may be removed or reduces */
 		removed: string[];
-		/** monday's schedule (times at which a line stops at this stop) */
-		monday: { [line in string]?: [string, string][] };
-		/** tuesday's schedule (times at which a line stops at this stop) */
-		tuesday: { [line in string]?: [string, string][] };
-		/** wednesday's schedule (times at which a line stops at this stop) */
-		wednesday: { [line in string]?: [string, string][] };
-		/** thursday's schedule (times at which a line stops at this stop) */
-		thursday: { [line in string]?: [string, string][] };
-		/** friday's schedule (times at which a line stops at this stop) */
-		friday: { [line in string]?: [string, string][] };
-		/** saturday's schedule (times at which a line stops at this stop) */
-		saturday: { [line in string]?: [string, string][] };
-		/** sunday's schedule (times at which a line stops at this stop) */
-		sunday: { [line in string]?: [string, string][] };
+		/** times at which lines stop at this stop per weekday */
+		schedule: {
+			[line in string]?: {
+				/** this day's schedule for this line */
+				[day in Weekday]: [string, string][];
+			};
+		};
 	};
 	/** this stop's arrivals */
 	arrivals: {

@@ -329,47 +329,25 @@
 						stop
 					</li>
 					<li>
-						<code>monday</code> (<code>object</code>) - Mondays' schedule (see
-						below)
-					</li>
-					<li>
-						<code>tuesday</code> (<code>object</code>) - Tuesdays' schedule (see
-						below)
-					</li>
-					<li>
-						<code>wednesday</code> (<code>object</code>) - Wednesdays' schedule
+						<code>schedule</code> (<code>object</code>) - Each line's schedule
 						(see below)
-					</li>
-					<li>
-						<code>thursday</code> (<code>object</code>) - Thursdays' schedule
-						(see below)
-					</li>
-					<li>
-						<code>friday</code> (<code>object</code>) - Fridays' schedule (see
-						below)
-					</li>
-					<li>
-						<code>saturday</code> (<code>object</code>) - Saturdays' schedule
-						(see below)
-					</li>
-					<li>
-						<code>sunday</code> (<code>object</code>) - Sundays' schedule (see
-						below)
 					</li>
 				</ul>
 
 				<p>
 					A schedule for the purposes of the above list is an object with line
-					IDs as keys and arrays of arrival time - departure time pairs
-					(two-element arrays of strings, in the
+					IDs as keys and objects with a key for every weekday (i.e.
+					<code>monday</code>, <code>tuesday</code>, ..., <code>sunday</code>)
+					as values. The values in these weekday objects are arrays of arrival
+					time - departure time pairs (two-element arrays of strings, in the
 					<a href="https://tc39.es/proposal-temporal/docs/plaintime.html"
 						><code>Temporal.PlainTime</code></a
 					>
 					string format - though the departure time may optionally end with
 					<code>" +N"</code> where N is a positive integer indicating the number
 					of extra days since the schedule day, e.g. <code>" +1"</code> when the
-					departure time is on the day after the arrival time) as values
-					describing each line's schedule at this stop on a given weekday.
+					departure time is on the day after the arrival time) describing a
+					given line's schedule at this stop on each day of the week.
 				</p>
 
 				<h3>Properties of the objects in <code>arrivals</code>:</h3>

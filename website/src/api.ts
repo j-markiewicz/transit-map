@@ -299,20 +299,25 @@ export type StopSchedule = Stop & {
 		additional: string[];
 		/** dates on which service may be removed or reduces */
 		removed: string[];
-		/** monday's schedule (times at which a line stops at this stop) */
-		monday: { [line in string]?: [string, string][] };
-		/** tuesday's schedule (times at which a line stops at this stop) */
-		tuesday: { [line in string]?: [string, string][] };
-		/** wednesday's schedule (times at which a line stops at this stop) */
-		wednesday: { [line in string]?: [string, string][] };
-		/** thursday's schedule (times at which a line stops at this stop) */
-		thursday: { [line in string]?: [string, string][] };
-		/** friday's schedule (times at which a line stops at this stop) */
-		friday: { [line in string]?: [string, string][] };
-		/** saturday's schedule (times at which a line stops at this stop) */
-		saturday: { [line in string]?: [string, string][] };
-		/** sunday's schedule (times at which a line stops at this stop) */
-		sunday: { [line in string]?: [string, string][] };
+		/** times at which lines stop at this stop per weekday */
+		schedule: {
+			[line in string]?: {
+				/** mondays' schedule for this line */
+				monday: [string, string][];
+				/** tuesdays' schedule for this line */
+				tuesday: [string, string][];
+				/** wednesdays' schedule for this line */
+				wednesday: [string, string][];
+				/** thursdays' schedule for this line */
+				thursday: [string, string][];
+				/** fridays' schedule for this line */
+				friday: [string, string][];
+				/** saturdays' schedule for this line */
+				saturday: [string, string][];
+				/** sundays' schedule for this line */
+				sunday: [string, string][];
+			};
+		};
 	};
 	/** this stop's scheduled arrivals */
 	arrivals: {

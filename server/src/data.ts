@@ -19,6 +19,7 @@ import {
 	TimeInterval,
 	Vehicle,
 	VehicleType,
+	Weekday,
 } from "./types.js";
 import WorkerPool from "./workerpool.js";
 
@@ -683,8 +684,8 @@ export default class Data {
 		for (const [stop, st] of Object.entries(gtfs_stop_times)) {
 			stop_schedules[stop] = new Lazy(() => {
 				const schedule_init: {
-					[line in string]?: [Temporal.PlainTime, string][];
-				}[] = [{}, {}, {}, {}, {}, {}, {}];
+					[line in string]?: [Temporal.PlainTime, string][][];
+				} = {};
 
 				for (const s of st ?? []) {
 					const times_raw = [time(s.arrival), time(s.departure)];
@@ -715,11 +716,11 @@ export default class Data {
 					const add_day = (day_base: number) => {
 						const day = (day_base + extra_days[0]) % 7;
 
-						if (schedule_init[day]?.[line.line] === undefined) {
-							schedule_init[day][line.line] = [];
+						if (schedule_init[line.line] === undefined) {
+							schedule_init[line.line] = [[], [], [], [], [], [], []];
 						}
 
-						schedule_init[day][line.line]!.push([
+						schedule_init[line.line]![day].push([
 							times[0],
 							diff_days === 0
 								? times[1].toString()
@@ -736,23 +737,32 @@ export default class Data {
 					if (cal.sunday) add_day(6);
 				}
 
-				for (const day of schedule_init) {
-					for (const line of Object.values(day).filter(
-						(l) => l !== undefined
-					)) {
-						line.sort((a, b) => a[0].since(b[0]).total("seconds"));
+				for (const line of Object.values(schedule_init).filter(
+					(l) => l !== undefined
+				)) {
+					for (const day of line) {
+						day.sort((a, b) => a[0].since(b[0]).total("seconds"));
 					}
 				}
 
-				const schedule: { [line in string]?: [string, string][] }[] =
-					schedule_init.map((day) =>
-						Object.fromEntries(
-							Object.entries(day).map(([k, v]) => [
-								k,
-								v?.map((line) => [line[0].toString(), line[1]]),
-							])
-						)
-					);
+				const schedule: {
+					[line in string]?: {
+						[day in Weekday]: [string, string][];
+					};
+				} = Object.fromEntries(
+					Object.entries(schedule_init).map(([k, line]) => [
+						k,
+						{
+							monday: line?.[0]?.map(([a, d]) => [a.toString(), d])!,
+							tuesday: line?.[1]?.map(([a, d]) => [a.toString(), d])!,
+							wednesday: line?.[2]?.map(([a, d]) => [a.toString(), d])!,
+							thursday: line?.[3]?.map(([a, d]) => [a.toString(), d])!,
+							friday: line?.[4]?.map(([a, d]) => [a.toString(), d])!,
+							saturday: line?.[5]?.map(([a, d]) => [a.toString(), d])!,
+							sunday: line?.[6]?.map(([a, d]) => [a.toString(), d])!,
+						},
+					])
+				);
 
 				const services_at_this_stop = [
 					...new Set(st?.map((st) => trip_mappings[st.trip]?.service)),
@@ -861,13 +871,7 @@ export default class Data {
 							.map((d) => date(d!.date))
 							.sort((a, b) => a.since(b).total("days"))
 							.map((d) => d.toString()),
-						monday: schedule[0],
-						tuesday: schedule[1],
-						wednesday: schedule[2],
-						thursday: schedule[3],
-						friday: schedule[4],
-						saturday: schedule[5],
-						sunday: schedule[6],
+						schedule,
 					},
 					arrivals: arrivals
 						.sort((a, b) => a.arrival.since(b.arrival).sign)
