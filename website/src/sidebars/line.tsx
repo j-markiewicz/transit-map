@@ -2,6 +2,7 @@ import { navigate } from "wouter-preact/use-hash-location";
 import { useContext, useEffect, useState } from "preact/hooks";
 
 import back_icon from "../assets/back.svg";
+import locate_icon from "../assets/locate.svg";
 import refresh_icon from "../assets/refresh.svg";
 
 import Loading from "../components/loading.tsx";
@@ -15,7 +16,7 @@ export default function Line({ system, id }: { system: string; id: string }) {
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
 	const [schedule, setSchedule] = useState<Line | "error" | null>(null);
-	const { highlighted, shapes } = useContext(MapCtx)!;
+	const { map, highlighted, shapes } = useContext(MapCtx)!;
 	useEffect(() => () => (highlighted.value = null), [system, id]);
 
 	useEffect(() => {
@@ -57,8 +58,15 @@ export default function Line({ system, id }: { system: string; id: string }) {
 						{schedule === null ? "" : schedule?.headsign}
 					</h2>
 				</div>
-				<a class={style.refresh} onClick={() => refresh()}>
-					<img class={style.refreshicon} src={refresh_icon} alt="refresh" />
+				<a
+					class={style.locate}
+					onClick={() =>
+						schedule === null
+							? null
+							: map.flyToBounds(schedule.stops.map((s) => [s.lat, s.lon]))
+					}
+				>
+					<img class={style.locateicon} src={locate_icon} alt="locate on map" />
 				</a>
 			</div>
 

@@ -4,6 +4,7 @@ import { Temporal } from "temporal-polyfill";
 
 import back_icon from "../assets/back.svg";
 import refresh_icon from "../assets/refresh.svg";
+import locate_icon from "../assets/locate.svg";
 
 import Loading from "../components/loading.tsx";
 import ScheduledStop from "../components/scheduled-stop.tsx";
@@ -13,7 +14,7 @@ import { cmp } from "../util.ts";
 import style from "./stop.module.css";
 
 export default function Stop({ system, id }: { system: string; id: string }) {
-	const { highlighted } = useContext(MapCtx)!;
+	const { map, highlighted } = useContext(MapCtx)!;
 	const [refresh_counter, refresh_inner] = useState<number>(0);
 	const refresh = () => (setSchedule(null), refresh_inner((c) => c + 1));
 	const [schedule, setSchedule] = useState<StopSchedule | "error" | null>(null);
@@ -117,8 +118,18 @@ export default function Stop({ system, id }: { system: string; id: string }) {
 					<img class={style.backicon} src={back_icon} alt="go back" />
 				</a>
 				<h1 class={style.name}>{schedule === null ? "" : schedule?.name}</h1>
-				<a class={style.refresh} onClick={() => refresh()}>
-					<img class={style.refreshicon} src={refresh_icon} alt="refresh" />
+				<a
+					class={style.locate}
+					onClick={() =>
+						schedule === null
+							? null
+							: map.flyTo(
+									[schedule.lat, schedule.lon],
+									Math.max(map.getZoom(), 16)
+							  )
+					}
+				>
+					<img class={style.locateicon} src={locate_icon} alt="locate on map" />
 				</a>
 			</div>
 
