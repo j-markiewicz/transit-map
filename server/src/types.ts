@@ -1,4 +1,6 @@
 import { LineString } from "geojson";
+import ms from "ms";
+import { number, object, record, refine, string, tuple } from "superstruct";
 import { Temporal } from "temporal-polyfill";
 
 export enum VehicleType {
@@ -465,3 +467,56 @@ export type SystemConfig = {
 		};
 	};
 };
+
+const DataSources = record(
+	refine(string(), "http(s) url string", (s) => {
+		try {
+			const url = new URL(s);
+			return url.protocol === "http:" || url.protocol === "https:";
+		} catch (e: unknown) {
+			return false;
+		}
+	}),
+	object({
+		id: string(),
+		max_age: refine(string(), "ms string", (s) => {
+			try {
+				return ms(s) !== undefined;
+			} catch (e: unknown) {
+				return false;
+			}
+		}),
+	})
+);
+
+const LatLon = refine(
+	tuple([number(), number()]),
+	"latitude-longitude pair",
+	([lat, lon]) => {
+		return (
+			isFinite(lat) &&
+			isFinite(lon) &&
+			-90 <= lat &&
+			lat <= 90 &&
+			-180 <= lon &&
+			lon <= 180
+		);
+	}
+);
+
+export const SystemConfig = object({
+	location: tuple([LatLon, LatLon]),
+	gtfs: DataSources,
+	realtime: DataSources,
+});
+
+export const SystemConfigWithName = object({
+	name: refine(
+		string(),
+		"transit system name",
+		(s) => s !== "" && !"abcdefghijklmnopqrstuvwxyz".includes(s[0])
+	),
+	location: tuple([LatLon, LatLon]),
+	gtfs: DataSources,
+	realtime: DataSources,
+});

@@ -2,6 +2,7 @@ name: transit-map
 
 volumes:
   traefik-certs:
+  transit-map-db:
 
 
 networks:
@@ -20,6 +21,9 @@ services:
       - transit-map
     environment:
       - PORT=8000
+      - DB=/db/transit-map.sqlite
+    volumes:
+      - transit-map-db:/db:rw
     labels:
       - traefik.enable=true
       # HTTPS

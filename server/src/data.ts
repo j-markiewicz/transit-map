@@ -22,6 +22,7 @@ import {
 	Weekday,
 } from "./types.js";
 import WorkerPool from "./workerpool.js";
+import DB from "./db.js";
 
 const gtfs_workers = new WorkerPool(
 	new URL("./gtfs_worker.js", import.meta.url)
@@ -31,26 +32,47 @@ const realtime_workers = new WorkerPool(
 );
 
 export default class Data {
-	constructor(config: { [name in string]?: SystemConfig }) {
-		this.systems = {
-			...config,
-			alerts: undefined,
-			vehicles: undefined,
-			stops: undefined,
-			lines: undefined,
-			stop_schedules: undefined,
-			services: undefined,
-		};
-	}
-
+	private db: DB;
 	private systems: { [name in string]?: SystemInfo };
 
+	private constructor(db: DB, config: { [name in string]?: SystemConfig }) {
+		this.db = db;
+		this.systems = Object.fromEntries(
+			Object.entries(config).map(([k, v]): [string, SystemInfo | undefined] => [
+				k,
+				v === undefined
+					? undefined
+					: {
+							...v,
+							alerts: undefined,
+							vehicles: undefined,
+							stops: undefined,
+							lines: undefined,
+							stop_schedules: undefined,
+							services: undefined,
+					  },
+			])
+		);
+	}
+
+	public static async new(db: DB): Promise<Data> {
+		return new Data(db, await db.get_config_all());
+	}
+
+	/** check if there is data/configuration for the given system */
 	public has_system(system: string): boolean {
 		return this.systems[system] !== undefined;
 	}
 
-	/** download and cache all gtfs schedule (non-realtime) data for all systems */
+	/** download and cache all gtfs schedule (non-realtime) data for all systems
+	 *
+	 * this process happens in the background, and only runs if not disabled with `--no-precache`
+	 */
 	public precache() {
+		if (process.argv.includes("--no-precache")) {
+			return;
+		}
+
 		for (const system of Object.keys(this.systems)) {
 			for (const source of Object.keys(this.systems[system]?.gtfs ?? {})) {
 				this.fetch_or_cached_gtfs(system, source);
@@ -60,12 +82,14 @@ export default class Data {
 		this.get_all_info();
 	}
 
+	/** get all systems' info */
 	public get_all_info(): Promise<BasicSystemInfo[]> {
 		return Promise.all(
 			Object.keys(this.systems).map((system) => this.get_info(system))
 		).then((res) => res.filter((info) => info !== undefined));
 	}
 
+	/** get the info for the given system */
 	public get_info(system: string): Promise<BasicSystemInfo> | undefined {
 		const sys = this.systems[system];
 
@@ -93,6 +117,7 @@ export default class Data {
 		}))();
 	}
 
+	/** get the config for the given system */
 	public get_config(system: string): SystemConfig | undefined {
 		const sys = this.systems[system];
 
@@ -127,6 +152,68 @@ export default class Data {
 		};
 	}
 
+	/** set the config for an existing system if it exists, returning whether the system existed */
+	public set_config(
+		system: string,
+		config: SystemConfig
+	): Promise<true> | false {
+		if (this.systems[system] === undefined) {
+			return false;
+		}
+
+		this.systems[system] = {
+			...config,
+			alerts: undefined,
+			vehicles: undefined,
+			stops: undefined,
+			lines: undefined,
+			stop_schedules: undefined,
+			services: undefined,
+		};
+
+		return this.db
+			.set_config(system, config)
+			.then(() => this.precache())
+			.then(() => true);
+	}
+
+	/** add the config for a new system if it doesn't exists, returning whether the addition was successful */
+	public add_config(
+		system: string,
+		config: SystemConfig
+	): Promise<true> | false {
+		if (this.systems[system] !== undefined) {
+			return false;
+		}
+
+		this.systems[system] = {
+			...config,
+			alerts: undefined,
+			vehicles: undefined,
+			stops: undefined,
+			lines: undefined,
+			stop_schedules: undefined,
+			services: undefined,
+		};
+
+		return this.db
+			.add_config(system, config)
+			.then(() => this.precache())
+			.then(() => true);
+	}
+
+	/** remove the config for an existing system if it exists, returning whether the system existed */
+	public delete_config(system: string): Promise<true> | false {
+		if (this.systems[system] === undefined) {
+			return false;
+		}
+
+		delete this.systems[system];
+
+		return this.db.delete_config(system).then(() => true);
+	}
+
+	/** get the alerts for the given system */
 	public get_alerts(system: string): Promise<Alert[]> | undefined {
 		const alerts = this.systems[system]?.alerts;
 
@@ -140,6 +227,7 @@ export default class Data {
 		return this.systems[system].alerts;
 	}
 
+	/** get the vehicles for the given system */
 	public get_vehicles(system: string): Promise<Vehicle[]> | undefined {
 		const vehicles = this.systems[system]?.vehicles;
 
@@ -153,6 +241,7 @@ export default class Data {
 		return this.systems[system]?.vehicles;
 	}
 
+	/** get the stops for the given system */
 	public get_stops(system: string): Promise<Stop[]> | undefined {
 		const stops = this.systems[system]?.stops;
 
@@ -166,6 +255,7 @@ export default class Data {
 		return this.systems[system]?.stops;
 	}
 
+	/** get the lines for the given system */
 	public get_lines(system: string): Promise<Line[]> | undefined {
 		const lines = this.systems[system]?.lines;
 
@@ -179,6 +269,7 @@ export default class Data {
 		return this.systems[system]?.lines?.then((l) => l.lines);
 	}
 
+	/** get the stop schedule for the given stop in the given system */
 	public get_stop_schedule(
 		system: string,
 		stop: string
@@ -195,6 +286,7 @@ export default class Data {
 		return this.systems[system]?.stop_schedules?.then((s) => s[stop]?.get());
 	}
 
+	/** get line information for the given line in the given system */
 	public get_line(
 		system: string,
 		line: string
@@ -213,6 +305,7 @@ export default class Data {
 		);
 	}
 
+	/** get the given shape in the given system */
 	public get_shape(
 		system: string,
 		shape: string
@@ -229,6 +322,7 @@ export default class Data {
 		return this.systems[system].lines.then((l) => l.shapes[shape]);
 	}
 
+	/** get the mappings from trip id to line id and service id for the given system */
 	private get_trip_mappings(
 		system: string
 	): Promise<LinesInfo["trip_mappings"]> {
@@ -252,6 +346,7 @@ export default class Data {
 		});
 	}
 
+	/** get the service dates for the given system */
 	private get_services(
 		system: string
 	): Promise<{ [service in string]?: Temporal.ZonedDateTime[] }> {
@@ -267,6 +362,7 @@ export default class Data {
 		return this.systems[system]?.services;
 	}
 
+	/** compute alerts for the given system */
 	private async compute_alerts(system: string): Promise<Alert[]> {
 		console.debug(`computing alerts for ${system}`);
 
@@ -295,6 +391,7 @@ export default class Data {
 		}));
 	}
 
+	/** compute vehicles for the given system */
 	private async compute_vehicles(system: string): Promise<Vehicle[]> {
 		console.debug(`computing vehicles for ${system}`);
 
@@ -378,6 +475,7 @@ export default class Data {
 		});
 	}
 
+	/** compute stops for the given system */
 	private async compute_stops(system: string): Promise<Stop[]> {
 		console.debug(`computing stops for ${system}`);
 
@@ -454,6 +552,7 @@ export default class Data {
 		}));
 	}
 
+	/** compute lines for the given system */
 	private async compute_lines(system: string): Promise<LinesInfo> {
 		console.debug(`computing lines for ${system}`);
 
@@ -603,6 +702,7 @@ export default class Data {
 		};
 	}
 
+	/** compute stop schedules for the given system */
 	private async compute_stop_schedules(system: string): Promise<StopSchedules> {
 		console.debug(`computing stop schedules for ${system}`);
 
@@ -887,6 +987,7 @@ export default class Data {
 		return stop_schedules;
 	}
 
+	/** compute services for the given system */
 	private async compute_services(
 		system: string
 	): Promise<{ [service in string]?: Temporal.ZonedDateTime[] }> {
@@ -996,6 +1097,7 @@ export default class Data {
 		);
 	}
 
+	/** get cached gtfs data if available, otherwise fetch it from source */
 	private fetch_or_cached_gtfs(
 		system: string,
 		source: string
@@ -1071,6 +1173,7 @@ export default class Data {
 		return raw.data;
 	}
 
+	/** get cached gtfs-rt data if available, otherwise fetch it from source */
 	private fetch_or_cached_realtime(
 		system: string,
 		source: string
@@ -1131,6 +1234,7 @@ export default class Data {
 	}
 }
 
+/** parse a date from `yyyymmdd` format */
 function date(yyyymmdd: string): Temporal.PlainDate {
 	const year = parseInt(yyyymmdd.substring(0, 4));
 	const month = parseInt(yyyymmdd.substring(4, 6));
@@ -1139,6 +1243,7 @@ function date(yyyymmdd: string): Temporal.PlainDate {
 	return Temporal.PlainDate.from({ year, month, day });
 }
 
+/** parse a time as a duration "from noon - 12 hours" from `hh:mm:ss` format */
 function time(hhmmss: string | undefined): Temporal.Duration | undefined {
 	if (hhmmss === undefined) {
 		return undefined;
@@ -1153,6 +1258,7 @@ function time(hhmmss: string | undefined): Temporal.Duration | undefined {
 	);
 }
 
+/** get a line id from a trip id using the given trip mappings */
 function line_id(
 	trip_id: string | undefined,
 	trip_mappings: { [trip in string]?: { line: string } }
@@ -1164,6 +1270,7 @@ function line_id(
 	return "???";
 }
 
+/** get a short hash of the given string */
 function short_hash(str: string): string {
 	const LENGTH = 16;
 

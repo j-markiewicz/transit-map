@@ -211,7 +211,7 @@
 				The following table describes API endpoints which make
 				<code>transit-map</code> transit system configuration available and
 				editable. API keys are required for these endpoints for
-				<code>POST</code> and <code>PUT</code> requests.
+				<code>POST</code>, <code>PUT</code>, and <code>DELETE</code> requests.
 			</p>
 
 			<div class="table-wrapper">
@@ -259,6 +259,20 @@
 						<td>-</td>
 						<td>
 							Overwrite the configuration for the existing transit system
+							<code>:system</code>
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>DELETE</code>
+						</td>
+						<td>
+							<code>/:system/config</code>
+						</td>
+						<td>-</td>
+						<td>-</td>
+						<td>
+							Delete the configuration for the existing transit system
 							<code>:system</code>
 						</td>
 					</tr>
