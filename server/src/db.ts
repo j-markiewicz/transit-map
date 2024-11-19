@@ -1,5 +1,7 @@
+import { Temporal } from "temporal-polyfill";
 import Database from "better-sqlite3";
 
+import { hash_password, random } from "./auth.js";
 import { SystemConfig } from "./types.js";
 
 export default abstract class DB {
@@ -15,11 +17,13 @@ export default abstract class DB {
 
 	/** get the config for all systems in the database */
 	public abstract get_config_all(): Promise<{
-		[name in string]?: SystemConfig;
+		[name in string]?: SystemConfig & { owner: string };
 	}>;
 
 	/** get the config for the given system */
-	public abstract get_config(system: string): Promise<SystemConfig | undefined>;
+	public abstract get_config(
+		system: string
+	): Promise<(SystemConfig & { owner: string }) | undefined>;
 
 	/** set the config for the given system to the given value, if it exists */
 	public abstract set_config(
@@ -30,73 +34,166 @@ export default abstract class DB {
 	/** add a new system config, but only if it doesn't exist */
 	public abstract add_config(
 		system: string,
+		email: string,
 		config: SystemConfig
 	): Promise<undefined>;
 
 	/** delete the config for the given system */
 	public abstract delete_config(system: string): Promise<undefined>;
+
+	/** get a user's information by their user token */
+	public abstract get_user_by_user_token(
+		token: string
+	): Promise<{ email: string; is_admin: boolean } | undefined>;
+
+	/** set the given user token for the user with the given email address, returning whether such a user exists */
+	public abstract set_user_token(
+		email: string,
+		user_token: string,
+		expires: Temporal.Instant
+	): Promise<boolean>;
+
+	/** get a user's information by their email address */
+	public abstract get_user_by_email(email: string): Promise<
+		| {
+				provider: string | null;
+				authenticator: string;
+				totp_secret: string | null;
+				is_admin: boolean;
+		  }
+		| undefined
+	>;
+
+	/** add a user account */
+	public abstract add_user(
+		email: string,
+		provider: string | null,
+		authenticator: string,
+		totp_secret: string | null,
+		is_admin?: boolean
+	): Promise<undefined>;
 }
 
 type SQLitePreparedStatements = {
-	config: {
-		select_systems: Database.Statement<
-			[],
-			{ name: string; lat1: number; lon1: number; lat2: number; lon2: number }
-		>;
-		select_system: Database.Statement<
-			{ name: string },
-			{ name: string; lat1: number; lon1: number; lat2: number; lon2: number }
-		>;
-		select_gtfs_sources: Database.Statement<
-			{ system: string },
-			{ url: string; id: string; max_age: string }
-		>;
-		select_rt_sources: Database.Statement<
-			{ system: string },
-			{ url: string; id: string; max_age: string }
-		>;
-		insert_system: Database.Statement<
-			{
-				name: string;
-				lat1: number;
-				lon1: number;
-				lat2: number;
-				lon2: number;
-			},
-			undefined
-		>;
-		update_system: Database.Statement<
-			{
-				name: string;
-				lat1: number;
-				lon1: number;
-				lat2: number;
-				lon2: number;
-			},
-			undefined
-		>;
-		delete_system: Database.Statement<{ name: string }, undefined>;
-		insert_gtfs_source: Database.Statement<
-			{
-				system: string;
-				url: string;
-				max_age: string;
-				id: string;
-			},
-			undefined
-		>;
-		delete_gtfs_sources: Database.Statement<{ system: string }, undefined>;
-		insert_rt_source: Database.Statement<
-			{
-				system: string;
-				url: string;
-				max_age: string;
-				id: string;
-			},
-			undefined
-		>;
-		delete_rt_sources: Database.Statement<{ system: string }, undefined>;
-	};
+	select_systems: Database.Statement<
+		[],
+		{
+			name: string;
+			owner: string;
+			lat1: number;
+			lon1: number;
+			lat2: number;
+			lon2: number;
+		}
+	>;
+	select_system: Database.Statement<
+		{ name: string },
+		{
+			name: string;
+			owner: string;
+			lat1: number;
+			lon1: number;
+			lat2: number;
+			lon2: number;
+		}
+	>;
+	select_gtfs_sources: Database.Statement<
+		{ system: string },
+		{ url: string; id: string; max_age: string }
+	>;
+	select_rt_sources: Database.Statement<
+		{ system: string },
+		{ url: string; id: string; max_age: string }
+	>;
+	insert_system: Database.Statement<
+		{
+			name: string;
+			owner: string;
+			lat1: number;
+			lon1: number;
+			lat2: number;
+			lon2: number;
+		},
+		undefined
+	>;
+	update_system: Database.Statement<
+		{
+			name: string;
+			lat1: number;
+			lon1: number;
+			lat2: number;
+			lon2: number;
+		},
+		undefined
+	>;
+	delete_system: Database.Statement<{ name: string }, undefined>;
+	insert_gtfs_source: Database.Statement<
+		{
+			system: string;
+			url: string;
+			max_age: string;
+			id: string;
+		},
+		undefined
+	>;
+	delete_gtfs_sources: Database.Statement<{ system: string }, undefined>;
+	insert_rt_source: Database.Statement<
+		{
+			system: string;
+			url: string;
+			max_age: string;
+			id: string;
+		},
+		undefined
+	>;
+	delete_rt_sources: Database.Statement<{ system: string }, undefined>;
+	insert_user: Database.Statement<
+		{
+			email: string;
+			provider: string | null;
+			authenticator: string;
+			totp_secret: string | null;
+			is_admin: number;
+		},
+		undefined
+	>;
+	update_user: Database.Statement<
+		{
+			email: string;
+			new_email: string;
+			provider: string | null;
+			authenticator: string;
+			totp_secret: string | null;
+		},
+		undefined
+	>;
+	delete_user: Database.Statement<{ email: string }, undefined>;
+	select_user_tokens: Database.Statement<
+		[],
+		{ token: string; expires: string }
+	>;
+	delete_user_token: Database.Statement<{ token: string }, {}>;
+	select_user_token: Database.Statement<
+		{ token: string },
+		{ email: string; is_admin: boolean }
+	>;
+	insert_user_token: Database.Statement<
+		{
+			user: string;
+			token: string;
+			expires: string;
+		},
+		undefined
+	>;
+	select_user: Database.Statement<
+		{ email: string },
+		{
+			provider: string | null;
+			authenticator: string;
+			totp_secret: string | null;
+			is_admin: boolean;
+		}
+	>;
 };
 
 class SQLiteDB extends DB {
@@ -126,8 +223,19 @@ class SQLiteDB extends DB {
 
 		if (is_new) {
 			db.exec(
+				"CREATE TABLE IF NOT EXISTS users (\
+					email TEXT NOT NULL PRIMARY KEY,\
+					provider TEXT,\
+					authenticator TEXT NOT NULL,\
+					totp_secret TEXT,\
+					is_admin BOOLEAN DEFAULT FALSE\
+				)"
+			);
+
+			db.exec(
 				"CREATE TABLE IF NOT EXISTS systems (\
-					name TEXT PRIMARY KEY NOT NULL,\
+					name TEXT NOT NULL PRIMARY KEY,\
+					owner TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE,\
 					lat1 DOUBLE PRECISION NOT NULL,\
 					lon1 DOUBLE PRECISION NOT NULL,\
 					lat2 DOUBLE PRECISION NOT NULL,\
@@ -137,7 +245,7 @@ class SQLiteDB extends DB {
 
 			db.exec(
 				"CREATE TABLE IF NOT EXISTS gtfs_sources (\
-					system TEXT NOT NULL REFERENCES systems(name),\
+					system TEXT NOT NULL REFERENCES systems(name) ON DELETE CASCADE,\
 					url TEXT NOT NULL,\
 					id TEXT NOT NULL,\
 					max_age TEXT NOT NULL,\
@@ -147,162 +255,107 @@ class SQLiteDB extends DB {
 
 			db.exec(
 				"CREATE TABLE IF NOT EXISTS rt_sources (\
-					system TEXT NOT NULL REFERENCES systems(name),\
+					system TEXT NOT NULL REFERENCES systems(name) ON DELETE CASCADE,\
 					url TEXT NOT NULL,\
 					id TEXT NOT NULL,\
 					max_age TEXT NOT NULL,\
 					PRIMARY KEY (system, url)\
 				)"
 			);
+
+			db.exec(
+				"CREATE TABLE IF NOT EXISTS user_tokens (\
+					token TEXT NOT NULL PRIMARY KEY,\
+					user TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE,\
+					expires TIMESTAMP WITH TIME ZONE NOT NULL\
+				)"
+			);
 		}
 
 		const statements: SQLitePreparedStatements = {
-			config: {
-				select_systems: db.prepare(
-					"SELECT name, lat1, lon1, lat2, lon2 FROM systems"
-				),
-				select_system: db.prepare(
-					"SELECT name, lat1, lon1, lat2, lon2 FROM systems WHERE name = $name"
-				),
-				select_gtfs_sources: db.prepare(
-					"SELECT url, id, max_age FROM gtfs_sources WHERE system = $system"
-				),
-				select_rt_sources: db.prepare(
-					"SELECT url, id, max_age FROM rt_sources WHERE system = $system"
-				),
-				insert_system: db.prepare(
-					"INSERT INTO systems (name, lat1, lon1, lat2, lon2) VALUES ($name, $lat1, $lon1, $lat2, $lon2)"
-				),
-				update_system: db.prepare(
-					"UPDATE systems SET lat1 = $lat1, lon1 = $lon1, lat2 = $lat2, lon2 = $lon2 WHERE name = $name"
-				),
-				delete_system: db.prepare("DELETE FROM systems WHERE name = $name"),
-				insert_gtfs_source: db.prepare(
-					"INSERT INTO gtfs_sources (system, url, id, max_age) VALUES ($system, $url, $id, $max_age)"
-				),
-				delete_gtfs_sources: db.prepare(
-					"DELETE FROM gtfs_sources WHERE system = $system"
-				),
-				insert_rt_source: db.prepare(
-					"INSERT INTO rt_sources (system, url, id, max_age) VALUES ($system, $url, $id, $max_age)"
-				),
-				delete_rt_sources: db.prepare(
-					"DELETE FROM rt_sources WHERE system = $system"
-				),
-			},
+			select_systems: db.prepare(
+				"SELECT name, owner, lat1, lon1, lat2, lon2 FROM systems"
+			),
+			select_system: db.prepare(
+				"SELECT name, owner, lat1, lon1, lat2, lon2 FROM systems WHERE name = $name"
+			),
+			select_gtfs_sources: db.prepare(
+				"SELECT url, id, max_age FROM gtfs_sources WHERE system = $system"
+			),
+			select_rt_sources: db.prepare(
+				"SELECT url, id, max_age FROM rt_sources WHERE system = $system"
+			),
+			insert_system: db.prepare(
+				"INSERT INTO systems (name, owner, lat1, lon1, lat2, lon2) VALUES ($name, $owner, $lat1, $lon1, $lat2, $lon2)"
+			),
+			update_system: db.prepare(
+				"UPDATE systems SET lat1 = $lat1, lon1 = $lon1, lat2 = $lat2, lon2 = $lon2 WHERE name = $name"
+			),
+			delete_system: db.prepare("DELETE FROM systems WHERE name = $name"),
+			insert_gtfs_source: db.prepare(
+				"INSERT INTO gtfs_sources (system, url, id, max_age) VALUES ($system, $url, $id, $max_age)"
+			),
+			delete_gtfs_sources: db.prepare(
+				"DELETE FROM gtfs_sources WHERE system = $system"
+			),
+			insert_rt_source: db.prepare(
+				"INSERT INTO rt_sources (system, url, id, max_age) VALUES ($system, $url, $id, $max_age)"
+			),
+			delete_rt_sources: db.prepare(
+				"DELETE FROM rt_sources WHERE system = $system"
+			),
+			insert_user: db.prepare(
+				"INSERT INTO users (email, provider, authenticator, totp_secret, is_admin) VALUES ($email, $provider, $authenticator, $totp_secret, $is_admin)"
+			),
+			update_user: db.prepare(
+				"UPDATE users SET email = $new_email, provider = $provider, authenticator = $authenticator, totp_secret = $totp_secret WHERE email = $email"
+			),
+			delete_user: db.prepare("DELETE FROM users WHERE email = $email"),
+			select_user_tokens: db.prepare("SELECT token, expires FROM user_tokens"),
+			delete_user_token: db.prepare(
+				"DELETE FROM user_tokens WHERE token = $token"
+			),
+			select_user_token: db.prepare(
+				"SELECT email, is_admin FROM users WHERE email = (SELECT user FROM user_tokens WHERE token = $token)"
+			),
+			insert_user_token: db.prepare(
+				"INSERT INTO user_tokens (token, user, expires) VALUES ($token, $user, $expires)"
+			),
+			select_user: db.prepare(
+				"SELECT provider, authenticator, totp_secret, is_admin FROM users WHERE email = $email"
+			),
 		};
 
-		if (is_new && !process.argv.includes("--no-insert-sample-data")) {
-			console.info(
-				"Inserting sample data into the newly created database (use `--no-insert-sample-data` to disable)"
-			);
+		const sqlitedb = new SQLiteDB(db, statements);
 
-			statements.config.insert_system.run({
-				name: "Kraków",
-				lat1: 50.1233,
-				lon1: 19.7575,
-				lat2: 49.9628,
-				lon2: 20.1764,
-			});
-
-			statements.config.insert_gtfs_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/GTFS_KRK_T.zip",
-				id: "t",
-				max_age: "1d",
-			});
-
-			statements.config.insert_gtfs_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/GTFS_KRK_A.zip",
-				id: "a",
-				max_age: "1d",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/VehiclePositions_T.pb",
-				id: "t",
-				max_age: "20s",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/VehiclePositions_A.pb",
-				id: "a",
-				max_age: "20s",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/TripUpdates_T.pb",
-				id: "t",
-				max_age: "20s",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/TripUpdates_A.pb",
-				id: "a",
-				max_age: "20s",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/ServiceAlerts_T.pb",
-				id: "t",
-				max_age: "5m",
-			});
-
-			statements.config.insert_rt_source.run({
-				system: "Kraków",
-				url: "https://gtfs.ztp.krakow.pl/ServiceAlerts_A.pb",
-				id: "a",
-				max_age: "5m",
-			});
-
-			statements.config.insert_system.run({
-				name: "Koleje Małopolskie",
-				lat1: 50.6,
-				lon1: 21.5,
-				lat2: 49.45,
-				lon2: 19.0,
-			});
-
-			statements.config.insert_gtfs_source.run({
-				system: "Koleje Małopolskie",
-				url: "https://kolejemalopolskie.com.pl/rozklady_jazdy/kml-ska-gtfs.zip",
-				id: "ska",
-				max_age: "1d",
-			});
-
-			statements.config.insert_gtfs_source.run({
-				system: "Koleje Małopolskie",
-				url: "https://kolejemalopolskie.com.pl/rozklady_jazdy/ald-gtfs.zip",
-				id: "ald",
-				max_age: "1d",
-			});
+		if (is_new) {
+			await add_sample_data(sqlitedb);
 		}
 
-		return new SQLiteDB(db, statements);
+		sqlitedb.expire_tokens();
+
+		return sqlitedb;
 	}
 
-	public async get_config_all(): Promise<{ [name in string]?: SystemConfig }> {
+	public async get_config_all(): Promise<{
+		[name in string]?: SystemConfig & { owner: string };
+	}> {
 		return Object.fromEntries(
-			this.statements.config.select_systems.all().map((sys) => [
+			this.statements.select_systems.all().map((sys) => [
 				sys.name,
 				{
+					owner: sys.owner,
 					location: [
 						[sys.lat1, sys.lon1],
 						[sys.lat2, sys.lon2],
 					],
 					gtfs: Object.fromEntries(
-						this.statements.config.select_gtfs_sources
+						this.statements.select_gtfs_sources
 							.all({ system: sys.name })
 							.map((s) => [s.url, { id: s.id, max_age: s.max_age }])
 					),
 					realtime: Object.fromEntries(
-						this.statements.config.select_rt_sources
+						this.statements.select_rt_sources
 							.all({ system: sys.name })
 							.map((s) => [s.url, { id: s.id, max_age: s.max_age }])
 					),
@@ -311,25 +364,28 @@ class SQLiteDB extends DB {
 		);
 	}
 
-	public async get_config(system: string): Promise<SystemConfig | undefined> {
-		const sys = this.statements.config.select_system.get({ name: system });
+	public async get_config(
+		system: string
+	): Promise<(SystemConfig & { owner: string }) | undefined> {
+		const sys = this.statements.select_system.get({ name: system });
 
 		if (sys === undefined) {
 			return undefined;
 		}
 
 		return {
+			owner: sys.owner,
 			location: [
 				[sys.lat1, sys.lon1],
 				[sys.lat2, sys.lon2],
 			],
 			gtfs: Object.fromEntries(
-				this.statements.config.select_gtfs_sources
+				this.statements.select_gtfs_sources
 					.all({ system: sys.name })
 					.map((s) => [s.url, { id: s.id, max_age: s.max_age }])
 			),
 			realtime: Object.fromEntries(
-				this.statements.config.select_rt_sources
+				this.statements.select_rt_sources
 					.all({ system: sys.name })
 					.map((s) => [s.url, { id: s.id, max_age: s.max_age }])
 			),
@@ -341,7 +397,7 @@ class SQLiteDB extends DB {
 		config: SystemConfig
 	): Promise<undefined> {
 		this.db.transaction(() => {
-			this.statements.config.update_system.run({
+			this.statements.update_system.run({
 				name: system,
 				lat1: config.location[0][0],
 				lon1: config.location[0][1],
@@ -349,26 +405,28 @@ class SQLiteDB extends DB {
 				lon2: config.location[1][1],
 			});
 
-			this.statements.config.delete_gtfs_sources.run({ system });
-			this.statements.config.delete_rt_sources.run({ system });
+			this.statements.delete_gtfs_sources.run({ system });
+			this.statements.delete_rt_sources.run({ system });
 
 			Object.entries(config.gtfs).forEach(([url, c]) => {
-				this.statements.config.insert_gtfs_source.run({ system, url, ...c! });
+				this.statements.insert_gtfs_source.run({ system, url, ...c! });
 			});
 
 			Object.entries(config.realtime).forEach(([url, c]) => {
-				this.statements.config.insert_rt_source.run({ system, url, ...c! });
+				this.statements.insert_rt_source.run({ system, url, ...c! });
 			});
 		})();
 	}
 
 	public async add_config(
 		system: string,
+		owner: string,
 		config: SystemConfig
 	): Promise<undefined> {
 		this.db.transaction(() => {
-			this.statements.config.insert_system.run({
+			this.statements.insert_system.run({
 				name: system,
+				owner,
 				lat1: config.location[0][0],
 				lon1: config.location[0][1],
 				lat2: config.location[1][0],
@@ -378,24 +436,192 @@ class SQLiteDB extends DB {
 			Object.entries(config.gtfs)
 				.filter(([_, c]) => c !== undefined)
 				.forEach(([url, c]) => {
-					this.statements.config.insert_gtfs_source.run({ system, url, ...c! });
+					this.statements.insert_gtfs_source.run({ system, url, ...c! });
 				});
 
 			Object.entries(config.realtime)
 				.filter(([_, c]) => c !== undefined)
 				.forEach(([url, c]) => {
-					this.statements.config.insert_rt_source.run({ system, url, ...c! });
+					this.statements.insert_rt_source.run({ system, url, ...c! });
 				});
 		})();
 	}
 
 	public async delete_config(system: string): Promise<undefined> {
 		this.db.transaction(() => {
-			this.statements.config.delete_gtfs_sources.run({ system });
-			this.statements.config.delete_rt_sources.run({ system });
-			this.statements.config.delete_system.run({
+			this.statements.delete_gtfs_sources.run({ system });
+			this.statements.delete_rt_sources.run({ system });
+			this.statements.delete_system.run({
 				name: system,
 			});
 		})();
 	}
+
+	public async get_user_by_user_token(
+		token: string
+	): Promise<{ email: string; is_admin: boolean } | undefined> {
+		this.expire_tokens();
+
+		return this.statements.select_user_token.get({ token });
+	}
+
+	public async get_user_by_email(email: string): Promise<
+		| {
+				provider: string | null;
+				authenticator: string;
+				totp_secret: string | null;
+				is_admin: boolean;
+		  }
+		| undefined
+	> {
+		return this.statements.select_user.get({ email });
+	}
+
+	public async set_user_token(
+		email: string,
+		user_token: string,
+		expires: Temporal.Instant
+	): Promise<boolean> {
+		return this.db.transaction(() => {
+			const user = this.statements.select_user.get({ email });
+
+			if (user === undefined) {
+				return false;
+			}
+
+			this.statements.insert_user_token.run({
+				user: email,
+				token: user_token,
+				expires: expires.toString(),
+			});
+
+			return true;
+		})();
+	}
+
+	public async add_user(
+		email: string,
+		provider: string | null,
+		authenticator: string,
+		totp_secret: string | null,
+		is_admin: boolean = false
+	): Promise<undefined> {
+		this.statements.insert_user.run({
+			email,
+			provider,
+			authenticator,
+			totp_secret,
+			is_admin: is_admin ? 1 : 0,
+		});
+	}
+
+	private expire_tokens() {
+		this.db.transaction(() => {
+			for (const {
+				token,
+				expires,
+			} of this.statements.select_user_tokens.all()) {
+				if (
+					Temporal.Instant.from(expires)
+						.since(Temporal.Now.instant())
+						.total("nanoseconds") < 0
+				) {
+					this.statements.delete_user_token.run({ token });
+				}
+			}
+		})();
+	}
+}
+
+/** add sample data to the given database, if that is not disabled with "--no-insert-sample-data" */
+async function add_sample_data(db: DB) {
+	if (process.argv.includes("--no-insert-sample-data")) {
+		return;
+	}
+
+	console.info(
+		"Inserting sample data into the newly created database (use `--no-insert-sample-data` to disable)"
+	);
+
+	const admin_email = "admin@transit.map";
+	let admin_password = process.env.DEFAULT_ADMIN_PASSWORD || undefined;
+
+	if (admin_password === undefined) {
+		console.warn(
+			"Creating new database with sample data, but no default admin password specified using the `DEFAULT_ADMIN_PASSWORD` env var."
+		);
+
+		admin_password = await random();
+		if (!process.argv.includes("--no-print-generated-admin-password")) {
+			console.warn(
+				`Generated admin password for account "${admin_email}" (to disable printing this, use "--no-print-generated-admin-password"): "${admin_password}"`
+			);
+		}
+	}
+
+	const hashed_admin_password = await hash_password(admin_password, true);
+	admin_password = undefined;
+
+	db.add_user(admin_email, null, hashed_admin_password, null, true);
+
+	db.add_config("Kraków", admin_email, {
+		location: [
+			[50.1233, 19.7575],
+			[49.9628, 20.1764],
+		],
+		gtfs: {
+			"https://gtfs.ztp.krakow.pl/GTFS_KRK_T.zip": {
+				id: "t",
+				max_age: "1d",
+			},
+			"https://gtfs.ztp.krakow.pl/GTFS_KRK_A.zip": {
+				id: "a",
+				max_age: "1d",
+			},
+		},
+		realtime: {
+			"https://gtfs.ztp.krakow.pl/VehiclePositions_T.pb": {
+				id: "t",
+				max_age: "20s",
+			},
+			"https://gtfs.ztp.krakow.pl/VehiclePositions_A.pb": {
+				id: "a",
+				max_age: "20s",
+			},
+			"https://gtfs.ztp.krakow.pl/TripUpdates_T.pb": {
+				id: "t",
+				max_age: "20s",
+			},
+			"https://gtfs.ztp.krakow.pl/TripUpdates_A.pb": {
+				id: "a",
+				max_age: "20s",
+			},
+			"https://gtfs.ztp.krakow.pl/ServiceAlerts_T.pb": {
+				id: "t",
+				max_age: "5m",
+			},
+			"https://gtfs.ztp.krakow.pl/ServiceAlerts_A.pb": {
+				id: "a",
+				max_age: "5m",
+			},
+		},
+	});
+
+	db.add_config("Koleje Małopolskie", admin_email, {
+		location: [
+			[50.6, 21.5],
+			[49.45, 19],
+		],
+		gtfs: {
+			"https://kolejemalopolskie.com.pl/rozklady_jazdy/kml-ska-gtfs.zip": {
+				id: "ska",
+				max_age: "1d",
+			},
+			"https://kolejemalopolskie.com.pl/rozklady_jazdy/ald-gtfs.zip": {
+				id: "bus",
+				max_age: "1d",
+			},
+		},
+		realtime: {},
+	});
 }

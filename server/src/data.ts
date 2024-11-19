@@ -35,7 +35,10 @@ export default class Data {
 	private db: DB;
 	private systems: { [name in string]?: SystemInfo };
 
-	private constructor(db: DB, config: { [name in string]?: SystemConfig }) {
+	private constructor(
+		db: DB,
+		config: { [name in string]?: SystemConfig & { owner: string } }
+	) {
 		this.db = db;
 		this.systems = Object.fromEntries(
 			Object.entries(config).map(([k, v]): [string, SystemInfo | undefined] => [
@@ -118,7 +121,9 @@ export default class Data {
 	}
 
 	/** get the config for the given system */
-	public get_config(system: string): SystemConfig | undefined {
+	public get_config(
+		system: string
+	): (SystemConfig & { owner: string }) | undefined {
 		const sys = this.systems[system];
 
 		if (sys === undefined) {
@@ -126,6 +131,7 @@ export default class Data {
 		}
 
 		return {
+			owner: sys.owner,
 			location: sys.location,
 			gtfs: Object.fromEntries(
 				Object.entries(sys.gtfs).map(([s, g]) => [
@@ -157,12 +163,14 @@ export default class Data {
 		system: string,
 		config: SystemConfig
 	): Promise<true> | false {
-		if (this.systems[system] === undefined) {
+		const sys = this.systems[system];
+		if (sys === undefined) {
 			return false;
 		}
 
 		this.systems[system] = {
 			...config,
+			owner: sys.owner,
 			alerts: undefined,
 			vehicles: undefined,
 			stops: undefined,
@@ -180,6 +188,7 @@ export default class Data {
 	/** add the config for a new system if it doesn't exists, returning whether the addition was successful */
 	public add_config(
 		system: string,
+		owner: string,
 		config: SystemConfig
 	): Promise<true> | false {
 		if (this.systems[system] !== undefined) {
@@ -188,6 +197,7 @@ export default class Data {
 
 		this.systems[system] = {
 			...config,
+			owner,
 			alerts: undefined,
 			vehicles: undefined,
 			stops: undefined,
@@ -197,7 +207,7 @@ export default class Data {
 		};
 
 		return this.db
-			.add_config(system, config)
+			.add_config(system, owner, config)
 			.then(() => this.precache())
 			.then(() => true);
 	}

@@ -387,6 +387,8 @@ export type StopSchedules = {
 
 /** information about a transit system */
 export type SystemInfo = {
+	/** email address of the user owning this system */
+	owner: string;
 	/** bounding box around (most of) the system, used for initial map position */
 	location: [LatLon, LatLon];
 	/** gtfs schedule data sources and their data */
@@ -437,7 +439,7 @@ export type SystemInfo = {
 		| undefined;
 };
 
-/** configuration of a transit system, subset of `SystemInfo` */
+/** configuration of a transit system, approximately a subset of `SystemInfo` */
 export type SystemConfig = {
 	/** bounding box around (most of) the system, used for initial map position */
 	location: [LatLon, LatLon];
@@ -519,4 +521,14 @@ export const SystemConfigWithName = object({
 	location: tuple([LatLon, LatLon]),
 	gtfs: DataSources,
 	realtime: DataSources,
+});
+
+export type Credentials = {
+	email: string;
+	password: string;
+};
+
+export const Credentials = object({
+	email: refine(string(), "email address", (s) => /^.+@.+$/giu.test(s)),
+	password: refine(string(), "password", (s) => s.length >= 8),
 });
