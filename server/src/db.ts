@@ -483,9 +483,13 @@ class SQLiteDB extends DB {
 			}
 		} catch (e: unknown) {}
 
-		return this.statements.select_user_token.get({
+		const res = this.statements.select_user_token.get({
 			token,
 		});
+
+		return res === undefined
+			? undefined
+			: { email: res.email, is_admin: !!res.is_admin };
 	}
 
 	public async get_user_by_email(email: string): Promise<
@@ -497,7 +501,16 @@ class SQLiteDB extends DB {
 		  }
 		| undefined
 	> {
-		return this.statements.select_user.get({ email });
+		const res = this.statements.select_user.get({ email });
+
+		return res === undefined
+			? undefined
+			: {
+					provider: res.provider,
+					authenticator: res.authenticator,
+					totp_secret: res.totp_secret,
+					is_admin: !!res.is_admin,
+			  };
 	}
 
 	public async set_user_token(
