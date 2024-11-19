@@ -43,7 +43,8 @@ export default abstract class DB {
 
 	/** get a user's information by their user token */
 	public abstract get_user_by_user_token(
-		token: string
+		token: string,
+		new_expiry?: Temporal.Instant
 	): Promise<{ email: string; is_admin: boolean } | undefined>;
 
 	/** set the given user token for the user with the given email address, returning whether such a user exists */
@@ -52,6 +53,9 @@ export default abstract class DB {
 		user_token: string,
 		expires: Temporal.Instant
 	): Promise<boolean>;
+
+	/** delete the given user token from the database, returning whether it existed */
+	public abstract delete_user_token(user_token: string): Promise<boolean>;
 
 	/** get a user's information by their email address */
 	public abstract get_user_by_email(email: string): Promise<
@@ -176,6 +180,10 @@ type SQLitePreparedStatements = {
 	select_user_token: Database.Statement<
 		{ token: string },
 		{ email: string; is_admin: boolean }
+	>;
+	update_user_token: Database.Statement<
+		{ token: string; expires: string },
+		undefined
 	>;
 	insert_user_token: Database.Statement<
 		{
@@ -314,6 +322,9 @@ class SQLiteDB extends DB {
 			select_user_tokens: db.prepare("SELECT token, expires FROM user_tokens"),
 			delete_user_token: db.prepare(
 				"DELETE FROM user_tokens WHERE token = $token"
+			),
+			update_user_token: db.prepare(
+				"UPDATE user_tokens SET expires = $expires WHERE token = $token"
 			),
 			select_user_token: db.prepare(
 				"SELECT email, is_admin FROM users WHERE email = (SELECT user FROM user_tokens WHERE token = $token)"
@@ -458,11 +469,23 @@ class SQLiteDB extends DB {
 	}
 
 	public async get_user_by_user_token(
-		token: string
+		token: string,
+		new_expiry?: Temporal.Instant
 	): Promise<{ email: string; is_admin: boolean } | undefined> {
 		this.expire_tokens();
 
-		return this.statements.select_user_token.get({ token });
+		try {
+			if (new_expiry !== undefined) {
+				this.statements.update_user_token.run({
+					token,
+					expires: new_expiry.toString(),
+				});
+			}
+		} catch (e: unknown) {}
+
+		return this.statements.select_user_token.get({
+			token,
+		});
 	}
 
 	public async get_user_by_email(email: string): Promise<
@@ -497,6 +520,12 @@ class SQLiteDB extends DB {
 
 			return true;
 		})();
+	}
+
+	public async delete_user_token(user_token: string): Promise<boolean> {
+		return (
+			this.statements.delete_user_token.run({ token: user_token }).changes > 0
+		);
 	}
 
 	public async add_user(

@@ -1,5 +1,8 @@
+import { boolean, is, optional, string, type } from "superstruct";
+import { RequestHandler } from "express";
 import { hash, verify } from "argon2";
 import { randomBytes } from "crypto";
+import jwt from "jsonwebtoken";
 
 const ARGON2ID_TIME_COST = Math.max(
 	parseInt(process.env.ARGON2ID_TIME_COST ?? "") || 5,
@@ -53,4 +56,76 @@ export async function random(): Promise<string> {
 			rej(e);
 		}
 	});
+}
+
+/** api authentication middleware
+ *
+ * after verifying the api token, this sets `req.user` and `req.is_admin` based
+ * on its contents
+ *
+ * if `required` is `true` (default), a request without a valid token will get
+ * rejected, and `req.user` is guaranteed to be set
+ */
+export function auth(secret: string, required: boolean = true): RequestHandler {
+	return async (req, res, next) => {
+		const token = req.header("Authorization");
+
+		if (token === undefined || !token.startsWith("Bearer ")) {
+			if (!required) {
+				next();
+				return;
+			}
+
+			res
+				.status(401)
+				.type("text/plain")
+				.header("WWW-Authenticate", "Bearer")
+				.send("Not authenticated");
+			return;
+		}
+
+		const payload = await new Promise((res) =>
+			jwt.verify(
+				token.substring("Bearer ".length),
+				secret,
+				{
+					algorithms: ["HS512"],
+					issuer: "transit-map",
+				},
+				(err, payload) => (err !== null ? res(undefined) : res(payload))
+			)
+		);
+
+		if (
+			payload === undefined ||
+			!is(payload, type({ user: string(), is_admin: optional(boolean()) }))
+		) {
+			if (!required) {
+				next();
+				return;
+			}
+
+			res
+				.status(403)
+				.type("text/plain")
+				.send("Not authorized to perform this request");
+			return;
+		}
+
+		req.user = payload.user;
+		req.is_admin = payload.is_admin;
+
+		next();
+	};
+}
+
+declare global {
+	namespace Express {
+		interface Request {
+			/** an authenticated user's email address */
+			user: string | undefined;
+			/** whether the requesting user is an administrator */
+			is_admin: boolean | undefined;
+		}
+	}
 }

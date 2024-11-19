@@ -8,7 +8,7 @@ import cors from "cors";
 import "dotenv/config";
 
 import { Credentials, SystemConfig, SystemConfigWithName } from "./types.js";
-import { random, verify_password } from "./auth.js";
+import { auth, random, verify_password } from "./auth.js";
 import Data from "./data.js";
 import DB from "./db.js";
 
@@ -107,6 +107,44 @@ async function main() {
 		}
 	});
 
+	app.post("/auth/logout", cookie_parser(), async (req, res) => {
+		try {
+			const user_token = req.cookies["__Secure-auth"];
+
+			res.cookie("__Secure-auth", "", {
+				httpOnly: true,
+				secure: true,
+				expires: new Date(1),
+				partitioned: true,
+				path: "/auth",
+				sameSite: "strict",
+			});
+
+			if (user_token === undefined) {
+				res
+					.status(401)
+					.type("text/plain")
+					.header("WWW-Authenticate", "Cookie")
+					.send("Not authenticated");
+				return;
+			}
+
+			const success = await db.delete_user_token(user_token);
+
+			if (success !== true) {
+				res.status(403).type("text/plain").send("Token incorrect");
+				return;
+			}
+
+			res.status(204).end();
+		} catch (e) {
+			res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
+			console.error(
+				`Internal Server Error: ${e} (${e instanceof Error ? e.stack : "???"})`
+			);
+		}
+	});
+
 	app.post("/auth/gen_token", cookie_parser(), async (req, res) => {
 		try {
 			const user_token = req.cookies["__Secure-auth"];
@@ -120,7 +158,10 @@ async function main() {
 				return;
 			}
 
-			const user = await db.get_user_by_user_token(user_token);
+			const user = await db.get_user_by_user_token(
+				user_token,
+				Temporal.Now.instant().add({ hours: 2 * 7 * 24 })
+			);
 
 			if (user === undefined) {
 				res.status(403).type("text/plain").send("Token incorrect");
@@ -182,7 +223,7 @@ async function main() {
 
 	app.get(
 		"/api/:system/config",
-		auth(db, api_token_secret, false),
+		auth(api_token_secret, false),
 		async (req, res) => {
 			try {
 				const { system } = req.params;
@@ -203,7 +244,7 @@ async function main() {
 					realtime: config?.realtime,
 					can_edit:
 						(req.user !== undefined && config?.owner === req.user) ||
-						req.is_admin,
+						req.is_admin === true,
 				});
 			} catch (e) {
 				res.status(500).type("text/plain").send(`Internal Server Error:\n${e}`);
@@ -218,7 +259,7 @@ async function main() {
 
 	app.post(
 		"/api/new",
-		auth(db, api_token_secret),
+		auth(api_token_secret),
 		express.json(),
 		async (req, res) => {
 			try {
@@ -265,7 +306,7 @@ async function main() {
 
 	app.put(
 		"/api/:system/config",
-		auth(db, api_token_secret),
+		auth(api_token_secret),
 		express.json(),
 		async (req, res) => {
 			try {
@@ -305,7 +346,7 @@ async function main() {
 
 	app.delete(
 		"/api/:system/config",
-		auth(db, api_token_secret),
+		auth(api_token_secret),
 		async (req, res) => {
 			try {
 				const { system } = req.params;
@@ -527,66 +568,4 @@ async function main() {
 				);
 			}
 		});
-}
-
-const auth: (db: DB, secret: string, required?: boolean) => RequestHandler =
-	(db: DB, secret: string, required: boolean = true) =>
-	async (req, res, next) => {
-		const token = req.header("Authorization");
-
-		if (token === undefined || !token.startsWith("Bearer ")) {
-			if (!required) {
-				next();
-				return;
-			}
-
-			res
-				.status(401)
-				.type("text/plain")
-				.header("WWW-Authenticate", "Bearer")
-				.send("Not authenticated");
-			return;
-		}
-
-		const payload = await new Promise((res) =>
-			jwt.verify(
-				token.substring("Bearer ".length),
-				secret,
-				{
-					algorithms: ["HS512"],
-					issuer: "transit-map",
-				},
-				(err, payload) => (err !== null ? res(undefined) : res(payload))
-			)
-		);
-
-		if (
-			payload === undefined ||
-			!is(payload, type({ user: string(), is_admin: optional(boolean()) }))
-		) {
-			if (!required) {
-				next();
-				return;
-			}
-
-			res
-				.status(403)
-				.type("text/plain")
-				.send("Not authorized to perform this request");
-			return;
-		}
-
-		req.user = payload.user;
-		req.is_admin = payload.is_admin;
-
-		next();
-	};
-
-declare global {
-	namespace Express {
-		interface Request {
-			user: string | undefined;
-			is_admin: boolean | undefined;
-		}
-	}
 }
