@@ -5,6 +5,7 @@ import { useHashLocation } from "wouter-preact/use-hash-location";
 import Edit from "./pages/edit.tsx";
 import Menu from "./pages/menu.tsx";
 import Line from "./sidebars/line.tsx";
+import LogIn from "./pages/login.tsx";
 import Map from "./pages/map.tsx";
 import Overview from "./sidebars/overview.tsx";
 import Stop from "./sidebars/stop.tsx";
@@ -17,6 +18,9 @@ function Main() {
 			<Switch>
 				<Route path="/">
 					<Menu />
+				</Route>
+				<Route path="/login">
+					<LogIn />
 				</Route>
 				<Route path="/new">
 					<Edit />

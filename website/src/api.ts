@@ -1,9 +1,14 @@
 import { LineString } from "geojson";
 
-const url = (path: string) => new URL(path, import.meta.env.VITE_MAP_API_BASE);
+const api_url = (path: string) =>
+	new URL(path, import.meta.env.VITE_MAP_API_BASE);
+const auth_url = (path: string) =>
+	new URL(path, import.meta.env.VITE_MAP_AUTH_BASE);
 
 export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
-	return fetch(url(""), { priority: "high" })
+	return fetch(api_url(""), {
+		priority: "high",
+	})
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching all info: ${err}`);
@@ -14,7 +19,9 @@ export async function get_all_info(): Promise<BasicSystemInfo[] | undefined> {
 export async function get_info(
 	system: string
 ): Promise<BasicSystemInfo | undefined> {
-	return fetch(url(`${system}`), { priority: "high" })
+	return fetch(api_url(`${system}`), {
+		priority: "high",
+	})
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching info: ${err}`);
@@ -25,7 +32,13 @@ export async function get_info(
 export async function get_config(
 	system: string
 ): Promise<(SystemConfig & { can_edit: boolean }) | undefined> {
-	return fetch(url(`${system}/config`), { priority: "high" })
+	const token = await get_token();
+
+	return fetch(api_url(`${system}/config`), {
+		priority: "high",
+		headers: token ? { Authorization: `Bearer ${token}` } : {},
+		credentials: "include",
+	})
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching config: ${err}`);
@@ -36,36 +49,88 @@ export async function get_config(
 export async function post_config(
 	config: SystemConfig & { name: string }
 ): Promise<boolean | undefined> {
-	return fetch(url(`new`), {
-		method: "POST",
-		body: JSON.stringify(config),
-		headers: { "Content-Type": "application/json" },
-	})
-		.then((res) => res.ok)
-		.catch((err) => {
-			console.error(`API error posting config: ${err}`);
-			return undefined;
-		});
+	const token = await get_token();
+
+	if (token === undefined) {
+		return undefined;
+	}
+
+	const call = (token: string) =>
+		fetch(api_url(`new`), {
+			method: "POST",
+			body: JSON.stringify(config),
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			credentials: "include",
+		})
+			.then((res) => res.ok)
+			.catch((err) => {
+				console.error(`API error posting config: ${err}`);
+				return undefined;
+			});
+
+	const res = await call(token);
+
+	if (res !== false) {
+		return res;
+	}
+
+	clear_token();
+	const new_token = await get_token();
+
+	if (new_token === undefined) {
+		return undefined;
+	}
+
+	return call(new_token);
 }
 
 export async function put_config(
 	system: string,
 	config: SystemConfig
 ): Promise<boolean | undefined> {
-	return fetch(url(`${system}/config`), {
-		method: "PUT",
-		body: JSON.stringify(config),
-		headers: { "Content-Type": "application/json" },
-	})
-		.then((res) => res.ok)
-		.catch((err) => {
-			console.error(`API error putting config: ${err}`);
-			return undefined;
-		});
+	const token = await get_token();
+
+	if (token === undefined) {
+		return undefined;
+	}
+
+	const call = (token: string) =>
+		fetch(api_url(`${system}/config`), {
+			method: "PUT",
+			body: JSON.stringify(config),
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${token}`,
+			},
+			credentials: "include",
+		})
+			.then((res) => res.ok)
+			.catch((err) => {
+				console.error(`API error putting config: ${err}`);
+				return undefined;
+			});
+
+	const res = await call(token);
+
+	if (res !== false) {
+		return res;
+	}
+
+	clear_token();
+	const new_token = await get_token();
+
+	if (new_token === undefined) {
+		return undefined;
+	}
+
+	return call(new_token);
 }
 
 export async function get_alerts(system: string): Promise<Alert[] | undefined> {
-	return fetch(url(`${system}/alerts`))
+	return fetch(api_url(`${system}/alerts`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching alerts: ${err}`);
@@ -76,7 +141,7 @@ export async function get_alerts(system: string): Promise<Alert[] | undefined> {
 export async function get_vehicles(
 	system: string
 ): Promise<Vehicle[] | undefined> {
-	return fetch(url(`${system}/vehicles`))
+	return fetch(api_url(`${system}/vehicles`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching vehicles: ${err}`);
@@ -85,7 +150,7 @@ export async function get_vehicles(
 }
 
 export async function get_stops(system: string): Promise<Stop[] | undefined> {
-	return fetch(url(`${system}/stops`))
+	return fetch(api_url(`${system}/stops`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching stops: ${err}`);
@@ -94,7 +159,7 @@ export async function get_stops(system: string): Promise<Stop[] | undefined> {
 }
 
 export async function get_lines(system: string): Promise<Line[] | undefined> {
-	return fetch(url(`${system}/lines`))
+	return fetch(api_url(`${system}/lines`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching lines: ${err}`);
@@ -106,7 +171,7 @@ export async function get_line(
 	system: string,
 	line: string
 ): Promise<Line | undefined> {
-	return fetch(url(`${system}/line/${line}`))
+	return fetch(api_url(`${system}/line/${line}`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching line: ${err}`);
@@ -118,7 +183,7 @@ export async function get_stop(
 	system: string,
 	stop: string
 ): Promise<StopSchedule | undefined> {
-	return fetch(url(`${system}/stop/${stop}`))
+	return fetch(api_url(`${system}/stop/${stop}`))
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching stop: ${err}`);
@@ -130,10 +195,75 @@ export async function get_shape(
 	system: string,
 	shape: string
 ): Promise<LineString | undefined> {
-	return fetch(url(`${system}/shape/${shape}`), { priority: "low" })
+	return fetch(api_url(`${system}/shape/${shape}`), { priority: "low" })
 		.then((res) => res.json())
 		.catch((err) => {
 			console.error(`API error fetching shape: ${err}`);
+			return undefined;
+		});
+}
+
+export async function log_in(credentials: Credentials): Promise<boolean> {
+	return fetch(auth_url("login"), {
+		method: "POST",
+		body: JSON.stringify(credentials),
+		credentials: "include",
+		headers: { "Content-Type": "application/json" },
+	})
+		.then((res) => (res.ok ? ((api_token = gen_token()), true) : false))
+		.catch((err) => {
+			console.error(`API error logging in: ${err}`);
+			return false;
+		});
+}
+
+export async function log_out(): Promise<boolean> {
+	clear_token();
+
+	return fetch(auth_url("logout"), {
+		method: "POST",
+		credentials: "include",
+	})
+		.then((res) => res.ok)
+		.catch((err) => {
+			console.error(`API error logging out: ${err}`);
+			return false;
+		});
+}
+
+let api_token: Promise<string | undefined> = Promise.resolve(undefined);
+
+export async function is_logged_in(): Promise<boolean> {
+	return (await get_token()) !== undefined;
+}
+
+function clear_token() {
+	api_token = Promise.resolve(undefined);
+}
+
+async function get_token(): Promise<string | undefined> {
+	try {
+		const token = await api_token;
+
+		if (token !== undefined) {
+			return token;
+		}
+
+		api_token = gen_token();
+		return api_token;
+	} catch (e: unknown) {
+		return undefined;
+	}
+}
+
+async function gen_token(): Promise<string | undefined> {
+	return fetch(auth_url("gen_token"), {
+		method: "POST",
+		credentials: "include",
+	})
+		.then((res) => (res.ok ? res.text() : undefined))
+		.catch((err) => {
+			console.error(`API error generating API token: ${err}`);
 			return undefined;
 		});
 }
@@ -332,4 +462,9 @@ export type StopSchedule = Stop & {
 		/** this stop's delay and its uncertainty in seconds, if known */
 		delay?: [number, number | undefined];
 	}[];
+};
+
+export type Credentials = {
+	email: string;
+	password: string;
 };
