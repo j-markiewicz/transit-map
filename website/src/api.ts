@@ -34,16 +34,34 @@ export async function get_config(
 ): Promise<(SystemConfig & { can_edit: boolean }) | undefined> {
 	const token = await get_token();
 
-	return fetch(api_url(`${system}/config`), {
-		priority: "high",
-		headers: token ? { Authorization: `Bearer ${token}` } : {},
-		credentials: "include",
-	})
-		.then((res) => res.json())
-		.catch((err) => {
-			console.error(`API error fetching config: ${err}`);
-			return undefined;
-		});
+	const call = (
+		token: string | undefined
+	): Promise<(SystemConfig & { can_edit: boolean }) | undefined> =>
+		fetch(api_url(`${system}/config`), {
+			priority: "high",
+			headers: token ? { Authorization: `Bearer ${token}` } : {},
+			credentials: "include",
+		})
+			.then((res) => res.json())
+			.catch((err) => {
+				console.error(`API error fetching config: ${err}`);
+				return undefined;
+			});
+
+	const res = await call(token);
+
+	if (res !== undefined && (res.can_edit === true || token === undefined)) {
+		return res;
+	}
+
+	clear_token();
+	const new_token = await get_token();
+
+	if (new_token === undefined) {
+		return undefined;
+	}
+
+	return call(new_token);
 }
 
 export async function post_config(
@@ -110,6 +128,45 @@ export async function put_config(
 			.then((res) => res.ok)
 			.catch((err) => {
 				console.error(`API error putting config: ${err}`);
+				return undefined;
+			});
+
+	const res = await call(token);
+
+	if (res !== false) {
+		return res;
+	}
+
+	clear_token();
+	const new_token = await get_token();
+
+	if (new_token === undefined) {
+		return undefined;
+	}
+
+	return call(new_token);
+}
+
+export async function delete_config(
+	system: string
+): Promise<boolean | undefined> {
+	const token = await get_token();
+
+	if (token === undefined) {
+		return undefined;
+	}
+
+	const call = (token: string) =>
+		fetch(api_url(`${system}/config`), {
+			method: "DELETE",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			credentials: "include",
+		})
+			.then((res) => res.ok)
+			.catch((err) => {
+				console.error(`API error deleting config: ${err}`);
 				return undefined;
 			});
 

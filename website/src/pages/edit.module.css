@@ -1,3 +1,27 @@
+.pageheader {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	height: 3rem;
+	padding: 0.5rem 2rem;
+}
+
+.pagename {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 0.5ch;
+	cursor: pointer;
+	font-size: 1.5rem;
+	font-weight: bold;
+}
+
+.pageicon {
+	height: 2rem;
+}
+
 .wrapper {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -81,6 +105,28 @@
 	grid-area: sources;
 	display: flex;
 	flex-direction: column;
+}
+
+.addsource {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: start;
+	height: 3rem;
+	cursor: pointer;
+}
+
+.addicon {
+	padding: 0;
+	margin: 0 0.5ch 0 0;
+	height: 2rem;
+}
+
+.deleteicon {
+	padding: 0;
+	margin: 0 0 0 0.5ch;
+	height: 2rem;
+	cursor: pointer;
 }
 
 .sourcelist {

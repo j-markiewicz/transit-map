@@ -1,6 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 import { navigate } from "wouter-preact/use-hash-location";
 
+import add_icon from "../assets/add.svg";
 import edit_icon from "../assets/edit.svg";
 
 import Loading from "../components/loading.tsx";
@@ -59,8 +60,8 @@ export default function Menu() {
 				{info === null ? (
 					<Loading />
 				) : (
-					info.map((i) => (
-						<>
+					<>
+						{info.map((i) => (
 							<section key={i.name} class={style.system}>
 								<div class={style.header}>
 									<a onClick={() => navigate(`/${i.name}`)} class={style.name}>
@@ -104,8 +105,23 @@ export default function Menu() {
 									</span>
 								</div>
 							</section>
-						</>
-					))
+						))}
+
+						{authenticated ? (
+							<section key="add" class={style.system}>
+								<div class={style.header}>
+									<a onClick={() => navigate("/new")} class={style.name}>
+										<img
+											class={style.button}
+											src={add_icon}
+											alt="add new transit system"
+											title="Add new transit system configuration"
+										/>
+									</a>
+								</div>
+							</section>
+						) : null}
+					</>
 				)}
 			</div>
 		</>
