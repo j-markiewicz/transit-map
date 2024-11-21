@@ -21,7 +21,7 @@ services:
       - transit-map
     environment:
       - PORT=8000
-      - DB=/db/transit-map.sqlite
+      - DB=sqlite:/db/transit-map.sqlite
       - ARGON2ID_TIME_COST = 5
       - ARGON2ID_MEMORY_COST = 262144
       - ARGON2ID_PARALLELISM = 4
