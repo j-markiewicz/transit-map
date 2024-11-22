@@ -30,6 +30,7 @@ jobs:
           cp -r ../docs ./dist/docs
         env:
           VITE_MAP_API_BASE: https://transit-map.janm.dev/api/
+          VITE_MAP_AUTH_BASE: https://transit-map.janm.dev/auth/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: "website/dist/"
