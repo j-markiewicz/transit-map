@@ -24,6 +24,12 @@
 				Data API. All data is transferred in JSON format, errors are reported in
 				plain text. API endpoints and authentication tokens are described below.
 			</p>
+			<p>
+				Additionally, <code>transit-map</code> has a small Auth API to manage
+				authentication/authorization to the Config API. The Auth API is separate
+				from the Data and Config APIs, and is designed primarily to support
+				using those APIs from a website. The Auth API is described below.
+			</p>
 
 			<h2>Data API endpoints</h2>
 
@@ -210,7 +216,7 @@
 			<p>
 				The following table describes API endpoints which make
 				<code>transit-map</code> transit system configuration available and
-				editable. API keys are required for these endpoints for
+				editable. API tokens are required for these endpoints for
 				<code>POST</code>, <code>PUT</code>, and <code>DELETE</code> requests.
 			</p>
 
@@ -297,9 +303,108 @@
 				</table>
 			</div>
 
+			<h2>Auth API endpoints</h2>
+
+			<p>
+				The following table describes API endpoints for website-based
+				authentication for the <code>transit-map</code> Config API. Note that
+				the base URL (the part before the "URL path" value in the table below)
+				for the Auth API is different to the Data and Config APIs' base URL.
+			</p>
+
+			<div class="table-wrapper">
+				<table class="auth-api-endpoints">
+					<thead>
+						<tr>
+							<th scope="col">Method</th>
+							<th scope="col">URL path</th>
+							<th scope="col">Request</th>
+							<th scope="col">Response</th>
+							<th scope="col">Description</th>
+						</tr>
+					</thead>
+					<tr>
+						<td>
+							<code>POST</code>
+						</td>
+						<td>
+							<code>/gen_token</code>
+						</td>
+						<td>
+							No data, but the <code>__Secure-auth</code> cookie must be set
+						</td>
+						<td>The API token with <code>text/plain</code> MIME type</td>
+						<td>
+							The API token returned from this endpoint allow authentication to
+							the Config API; the required cookie is set in response to a
+							successful call to the
+							<code>/login</code> endpoint and unset with a request to the
+							<code>/logout</code> endpoint
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>POST</code>
+						</td>
+						<td>
+							<code>/login</code>
+						</td>
+						<td>
+							<a href="types.html#credentials"><code>Credentials</code></a> in
+							JSON format
+						</td>
+						<td>No data, but the <code>__Secure-auth</code> cookie is set</td>
+						<td>
+							The cookie set by this endpoint allows access to the
+							<code>/gen_token</code> endpoint, which lets a user generate an
+							API token for authentication to the Config API
+						</td>
+					</tr>
+					<tr>
+						<td>
+							<code>POST</code>
+						</td>
+						<td>
+							<code>/logout</code>
+						</td>
+						<td>
+							No data, but the <code>__Secure-auth</code> cookie should be set
+						</td>
+						<td>
+							No data, but the <code>__Secure-auth</code> cookie is cleared
+						</td>
+						<td>
+							A request to this endpoint clears the
+							<code>__Secure-auth</code> cookie, and if the token in the cookie
+							is valid, clears it from the server's database, thereby logging
+							the requesting user out (though it does not invalidate any API
+							tokens issued to the user - those expire on their own after a few
+							minutes)
+						</td>
+					</tr>
+				</table>
+			</div>
+
 			<h2>Authentication tokens</h2>
 
-			<p>Tokens are not yet issued.</p>
+			<p>
+				<code>transit-map</code> has two different kinds of tokens: API tokens
+				and user tokens.
+			</p>
+
+			<p>
+				API tokens are
+				<a href="https://en.wikipedia.org/wiki/JSON_Web_Token">JWTs</a> which
+				give access to the Config API. Short-lived API tokens are issued by the
+				<code>/gen_token</code> endpoint of the Auth API.
+			</p>
+			<p>
+				User tokens are long-lived and issued to a user upon login. They are
+				long random strings and are stored in an HTTP-only cookie (and in a
+				database on the server). A user token can only be used to generate an
+				API token by sending a POST request to the
+				<code>/gen_token</code> endpoint of the Auth API.
+			</p>
 
 			<h2>Try it out</h2>
 

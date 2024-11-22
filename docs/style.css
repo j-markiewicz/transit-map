@@ -110,7 +110,8 @@ th {
 	min-width: 30ch;
 }
 
-.config-api-endpoints td:nth-child(1) {
+.config-api-endpoints td:nth-child(1),
+.auth-api-endpoints td:nth-child(1) {
 	text-align: center;
 	text-wrap: nowrap;
 	width: fit-content;
@@ -118,13 +119,20 @@ th {
 
 .config-api-endpoints td:nth-child(2),
 .config-api-endpoints td:nth-child(3),
-.config-api-endpoints td:nth-child(4) {
+.config-api-endpoints td:nth-child(4),
+.auth-api-endpoints td:nth-child(2) {
 	text-align: end;
 	text-wrap: nowrap;
 	width: fit-content;
 }
 
-.config-api-endpoints td:nth-child(5) {
+.auth-api-endpoints td:nth-child(3),
+.auth-api-endpoints td:nth-child(4) {
+	min-width: 20ch;
+}
+
+.config-api-endpoints td:nth-child(5),
+.auth-api-endpoints td:nth-child(5) {
 	min-width: 30ch;
 }
 
