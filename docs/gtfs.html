@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>GTFS - transit-map Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				GTFS
+			</h1>
+
+			<h2 id="schedule">GTFS Schedule</h2>
+			<p class="footnote">
+				Text &copy;
+				<a href="https://en.wikipedia.org/wiki/GTFS">Wikipedia Editors</a> (<a
+					href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License"
+					>CC BY-SA 4.0</a
+				>)
+			</p>
+
+			<p>
+				GTFS or the <em>General Transit Feed Specification</em> defines a common
+				data format for public transportation schedules and associated
+				geographic information. GTFS contains only static or scheduled
+				information about public transport services, and is sometimes known as
+				GTFS Static or GTFS Schedule to distinguish it from the GTFS Realtime
+				extension, which defines how information on the realtime status of
+				services can be shared.
+			</p>
+
+			<h3>Structure</h3>
+
+			<p>
+				A GTFS feed is a collection of at least six, and up to 13 CSV files
+				(with extension .txt) contained within a .zip file. Preferred character
+				encoding is UTF-8. Together, the related CSV tables describe a transit
+				system's scheduled operations as visible to riders. The specification is
+				designed to be sufficient to provide trip planning functionality, but is
+				also useful for other applications such as analysis of service levels
+				and some general performance measures. In contrast to European transit
+				industry exchange standards such as Transmodel or VDV-45X, GTFS only
+				includes scheduled operations that are meant to be distributed to
+				riders. It is also limited to scheduled information and does not include
+				real-time information. However, real-time information can be related to
+				GTFS schedules according to the related GTFS Realtime specification.
+			</p>
+			<p>
+				Following are descriptions of the tables required for a valid GTFS data
+				feed. Each table is literally a text CSV file whose filename is the name
+				of the table, suffixed by '.txt'. So for the 'agency' table below, a CSV
+				file called 'agency.txt' would be included in a valid GTFS feed.
+			</p>
+
+			<h3>Mandatory tables</h3>
+
+			<h4>agency</h4>
+			<p>
+				The agency table provides information about the transit agency as such,
+				including name, website and contact information.
+			</p>
+			<p>Required fields:</p>
+			<ul>
+				<li>agency_name</li>
+				<li>agency_url</li>
+				<li>agency_timezone</li>
+			</ul>
+
+			<h4>routes</h4>
+			<p>
+				The routes table identifies distinct routes. This is to be distinguished
+				from distinct routings (or paths), several of which may belong to a
+				single route.
+			</p>
+			<p>Required fields:</p>
+			<ul>
+				<li>route_id (primary key)</li>
+				<li>route_short_name</li>
+				<li>route_long_name</li>
+				<li>route_type</li>
+				<li>background_color</li>
+				<li>foreground_color</li>
+			</ul>
+
+			<h4>trips</h4>
+			<p>Required fields:</p>
+			<ul>
+				<li>trip_id (primary key)</li>
+				<li>route_id (foreign key)</li>
+				<li>service_id (foreign key)</li>
+			</ul>
+			<p>Optional fields:</p>
+			<ul>
+				<li>
+					block_id - The block ID indicates the schedule block to which a trip
+					belongs.
+				</li>
+			</ul>
+
+			<h4>stop_times</h4>
+			<p>Required fields:</p>
+			<ul>
+				<li>stop_id (primary key)</li>
+				<li>trip_id (foreign key)</li>
+				<li>arrival_time</li>
+				<li>departure_time</li>
+				<li>stop_sequence</li>
+			</ul>
+			<p>
+				Note that dwell time may be modelled by the difference between the
+				arrival and departure times. However, many agencies do not seem to model
+				dwell time for most stops.
+			</p>
+
+			<h4>stops</h4>
+			<p>
+				The stops table defines the geographic locations of each and every
+				actual stop or station in the transit system as well as, and optionally,
+				some of the amenities associated with those stops.
+			</p>
+			<p>Required fields:</p>
+			<ul>
+				<li>stop_id (primary key)</li>
+				<li>stop_name</li>
+				<li>stop_lon</li>
+				<li>stop_lat</li>
+			</ul>
+
+			<h4>calendar</h4>
+			<p>
+				The calendar table defines service patterns that operate recurrently
+				such as, for example, every weekday. Service patterns that don't repeat
+				such as for a one-time special event will be defined in the
+				calendar_dates table.
+			</p>
+			<p>Required fields:</p>
+			<ul>
+				<li>service_id (primary key)</li>
+				<li>Monday</li>
+				<li>Tuesday</li>
+				<li>Wednesday</li>
+				<li>Thursday</li>
+				<li>Friday</li>
+				<li>Saturday</li>
+				<li>Sunday</li>
+				<li>start_date</li>
+				<li>end_date</li>
+			</ul>
+
+			<h3>Optional tables</h3>
+
+			<h4>calendar_dates</h4>
+			<p>
+				Calendar dates is an optional table which adds exceptions to the
+				calendar.txt file. This can be adding additional days or removing days,
+				such as for holiday service. The file only contains three columns, the
+				service id, date, and exception type (either added or removed). A
+				service id does not have to be inside the calendar.txt file to be added
+				to this table.
+			</p>
+
+			<h4>fare_attributes</h4>
+
+			<h4>fare_rules</h4>
+
+			<h4>shapes</h4>
+			<p>
+				Rules for drawing lines on a map to represent a transit organization's
+				routes.
+			</p>
+
+			<h4>frequencies</h4>
+			<p>
+				This table specifies headway (time between trips) for routes with
+				variable frequency of service.
+			</p>
+
+			<h4>transfers</h4>
+			<p>Rules for making connections at transfer points between routes.</p>
+
+			<h4>feed_info</h4>
+			<p>
+				An optional feed start date and optional feed expiration date can be
+				set. Agencies may publish feeds that are several days into the future.
+				Thus, journey planning software applications keep multiple feed versions
+				and the correct feed for a particular day or time.
+			</p>
+
+			<h4>translations</h4>
+			<p>
+				The translations table consists of the columns table_name, field_name,
+				field_value, record_id, record_sub_id, language, translation.
+				Translations are broken down into their respective tables, and any text
+				field or URL may be translated. Translations in GTFS use two types of
+				keys in the key-value table. Record_id uses ID for the field like
+				stop_id or trip_id, while field_value is a matching value to the
+				field_name's original contents. Tables using a two value tuple, such as
+				stop_times, use record_id and record_sub_id to represent the tuple. The
+				translation column is the output.
+			</p>
+
+			<h2 id="schedule">GTFS Realtime</h2>
+			<p class="footnote">
+				Text &copy;
+				<a href="https://en.wikipedia.org/wiki/GTFS_Realtime"
+					>Wikipedia Editors</a
+				>
+				(<a
+					href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License"
+					>CC BY-SA 4.0</a
+				>)
+			</p>
+
+			<p>
+				GTFS Realtime (also known as GTFS-rt) is an extension to GTFS, in which
+				public transport agencies share real-time vehicle locations, arrival
+				time predictions, and alerts such as detours and cancellations via
+				Protocol Buffers web server.
+			</p>
+			<p>
+				Realtime location data is created continuously by an agency from
+				automatic vehicle location (AVL) systems. Trip arrival times are
+				computed using machine learning models that analyse historical
+				positional data and timetables.
+			</p>
+
+			<h3>Standard</h3>
+			<p>
+				The GTFS Realtime specification is defined by a .proto file hosted by
+				Google. Data is serialized into raw bytes by the server and then
+				deserialized by a client. Officially supported GTFS-rt binding libraries
+				have been built in .NET, Java, Javascript, Python, and Go. Unofficial
+				libraries have been written in other languages, such as Rust.
+			</p>
+			<p>
+				There are currently three official feed types defined in the standard,
+				TripUpdates, VehiclePositions, and Alerts. Shapes, Trip Modifications,
+				and Stops are currently experimental.
+			</p>
+			<p>
+				Agencies supporting GTFS-Realtime typically provide separate urls for
+				the three separate feed types, and may choose to only provide some of
+				the feeds. Unlike GTFS Static, many agencies may require developers to
+				request an API key via email or a web form.
+			</p>
+			<p>
+				Developers then write programs to periodically fetch an agency's web API
+				over HTTP, typically every few seconds to minutes. Agencies typically
+				refresh data in frequencies ranging between 1 second to 1 minute. There
+				is no standard for streaming GTFS Realtime data, also support is built
+				in to allow for deletion of items from previous iterations.
+			</p>
+
+			<h3>Trip updates</h3>
+			<p>
+				In the GTFS Specification, a trip refers to an operator driving a
+				fixed-route vehicle from the start of the route to the end. A new trip
+				is started for when the vehicle turns around at the end of its route.
+			</p>
+			<p>
+				The Trip Update feed allows maps to show the departure or arrival times
+				of vehicles, and allows routing algorithms to update their directions.
+			</p>
+			<p>
+				This feed contains an array of Trip Updates. Each trip update enumerates
+				a description of a trip (trip id, route id, start time and date,
+				direction), last updated time, may include an associated vehicle number
+				and route number, and contains an array of StopTimeUpdate. The
+				StopTimeUpdate can define past, current, and future stop times, delays,
+				and cancellations. The stop id references the GTFS Schedule feed the
+				agency provides.
+			</p>
+
+			<h3>Vehicle positions</h3>
+			<p>
+				Vehicle Positions are sometimes shown on mapping applications to aid
+				users in tracking the location of buses. This feed contains an array of
+				VehiclePositions. Like Trip Updates, each VehiclePosition can also
+				contain a basic description of the trip, such as its trip id, start and
+				stop times, route number, and relationship to the schedule. The
+				VehiclePosition also contains the current latitude and longitude of the
+				vehicle, and can also include bearing, odometer, and speed in m/s.
+				Finally, it can also contain information on how crowded the bus is,
+				known as occupancy status, and status of road congestion experienced by
+				the vehicle.
+			</p>
+
+			<h3>Alerts</h3>
+			<p>
+				Alerts can be shown to mapping application users to alert them of
+				detours, cancellations, or other service changes. This feed contains an
+				array of Alerts. Alerts typically don't update as often as Vehicle
+				Positions or Trip Updates. Each Alert stores the cause (such as labour
+				strike or a mechanical fault) of an incident, along with its effect
+				(reduced service, detour, stop cancellation, etc.). Alerts also contain
+				detailed headers, descriptions, urls, images, and a list of routes or
+				stops affected (known as the Informed Entity). Alerts specify their
+				beginning and expiration times using "active periods". Alerts can be
+				localised into several languages.
+			</p>
+		</main>
+	</body>
+</html>

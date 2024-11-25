@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>Server - transit-map Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				Server Architecture
+			</h1>
+
+			<p>
+				The <code>transit-map</code> server makes transit data available in the
+				format described in the <a href="api.html">API documentation</a>. The
+				source for this data are
+				<a href="gtfs.html#schedule">GTFS Schedule</a> and
+				<a href="gtfs.html#realtime">GTFS Realtime</a> feeds with configurable
+				sources. Additionally, the server manages authentication/authorization
+				to the data source configuration. This page provides an overview of the
+				way the server accomplishes this goal.
+			</p>
+
+			<img
+				class="big-img"
+				src="diagram.webp"
+				alt="A diagram showing the way various components of the server work together, as described in the following text."
+			/>
+
+			<p>
+				When an HTTP request for transit data comes in from the internet, the
+				<a href="https://expressjs.com/"><code>expressjs</code></a> library runs
+				the appropriate request handler, based on the request URL. The handler
+				retrieves the requested data by calling the appropriate
+				<code>get_*</code> method of the <code>Data</code> object*.
+			</p>
+
+			<p class="footnote">
+				*In the <code>transit-map</code> server, the <code>Data</code> and
+				<code>DB</code> classes are effectively just a way to organize code and
+				some data. Only one instance each of these classes are created. To avoid
+				overcomplicating this explanation with a mostly-useless distinction
+				between <em>classes</em> and <em>objects</em>, the term
+				<em>object</em> will be used along with the name of the class to
+				describe both the class and its single instance.
+			</p>
+
+			<p>
+				The
+				<a
+					href="https://github.com/j-markiewicz/transit-map/blob/main/server/src/data.ts"
+					><code>Data</code></a
+				>
+				object caches and computes transit data based on "raw" GTFS data (which
+				is also cached by <code>Data</code>). The GTFS sources are configurable
+				- <code>Data</code> uses the
+				<a
+					href="https://github.com/j-markiewicz/transit-map/blob/main/server/src/db.ts"
+					><code>DB</code></a
+				>
+				object to access a database with data source configuration. When
+				configuration is changed, the copy of the configuration in
+				<code>Data</code> is updated, and then the change is written to the
+				database through <code>DB</code>.
+			</p>
+
+			<p>
+				When one of the <code>get_*</code> methods on <code>Data</code> is
+				called and cached data is available, or the requested data is currently
+				being computed (with a
+				<a
+					href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise"
+					><code>Promise</code></a
+				>
+				of the data stored in <code>Data</code>), the data is returned as-is. If
+				no data is available, the <code>get_*</code> method internally calls the
+				appropriate <code>compute_*</code> method to compute the data, then
+				stores and returns the <code>Promise</code> to the freshly-computed
+				data. The cached data is invalidated automatically whenever any cached
+				GTFS source data gets invalidated.
+			</p>
+
+			<p>
+				The <code>compute_*</code> methods on <code>Data</code> are all unique,
+				but roughly follow a similar pattern in their implementation. First, the
+				required GTFS source data is retrieved with the
+				<code>fetch_or_cached_gtfs</code> and/or
+				<code>fetch_or_cached_realtime</code> methods. Then, the GTFS data is
+				transformed from the "raw" form (usually long lists of objects, roughly
+				equivalent to a bunch of database rows) returned by those methods into
+				the desired format for the <code>transit-map</code> API (objects and
+				arrays suitable for displaying on the <code>transit-map</code> website)
+				and returned.
+			</p>
+
+			<p>
+				<code>fetch_or_cached_gtfs</code> and
+				<code>fetch_or_cached_realtime</code> return a cached copy of the
+				requested "raw" data if available, otherwise they fetch and parse it
+				using the
+				<a
+					href="https://github.com/j-markiewicz/transit-map/blob/main/server/src/gtfs_worker.ts"
+					>appropriate</a
+				>
+				<a
+					href="https://github.com/j-markiewicz/transit-map/blob/main/server/src/rt_worker.ts"
+					>worker</a
+				>
+				in the background, returning a <code>Promise</code>. When fetching data,
+				after the worker is done and the data is ready, a timeout is set to
+				invalidate any cached copies of this "raw" data and any computed data
+				based on it after the configured interval.
+			</p>
+
+			<p>
+				The <code>gtfs</code> and <code>rt</code> workers exist because the
+				parsing of GTFS data can sometimes be slow and CPU-intensive (especially
+				for large GTFS Schedule files), and due to JavaScript's single-threaded
+				nature, would block the entire server for long periods of time. The
+				parsing code is also fairly large and complex (but self-contained), so
+				it's good to have it in an entirely seperate file.
+			</p>
+
+			<p>
+				The server follows this layered architecture (get, compute, fetch or
+				cached, fetch and parse) to maximize the amount of caching and minimize
+				the amount of work needed when source data updates, especially for GTFS
+				Realtime-based data. Splitting "horizontally" into many different
+				<code>get_*</code> and <code>compute_*</code> methods allows the server
+				to not do unnecessary work - data is only computed when it's actually
+				requested via the API (e.g. when the stop schedules of a transit system
+				are never actually requested, they don't need to be computed or cached).
+			</p>
+		</main>
+	</body>
+</html>

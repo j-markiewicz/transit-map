@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>Hosting - transit-map Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				Server Hosting
+			</h1>
+
+			<h2>Running the server</h2>
+
+			<p>
+				The <code>transit-map</code> server requires a recent Node.js version
+				and yarn to run. To run the server, simply run the
+				<code>yarn dev</code> command, or run <code>yarn build</code> and then
+				<code>node build/main.js</code>. Make sure the server's dependencies are
+				installed by running <code>yarn</code>.
+			</p>
+
+			<p>
+				Alternatively, the server can be run in a Docker container using the
+				supplied <code>Dockerfile</code>. A
+				<code>docker-compose.yaml</code> file is included with a full
+				ready-to-use server setup including automatic TLS certificates from
+				Let's Encrypt via traefik (after adjusting the domain name and contact
+				email address values in the file).
+			</p>
+
+			<h2>Environment variables and command line options</h2>
+
+			<p>
+				The server accepts some environment variables and command line arguments
+				for basic configuration, though none are required to be set.
+			</p>
+
+			<h3>Environment variables</h3>
+
+			<ul>
+				<li><code>PORT</code> - set the server's HTTP port (default 8000)</li>
+				<li>
+					<code>DB</code> - set the server's database URL (see
+					<a href="db.html">database documentation</a>; default
+					<code>sqlite:./transit-map.sqlite</code>)
+				</li>
+				<li>
+					<code>DEFAULT_ADMIN_PASSWORD</code> - set the server's default admin
+					password when inserting sample data into a newly created database
+					(default <em>random</em>)
+				</li>
+				<li>
+					<code>ARGON2ID_TIME_COST</code> - set the Argon2id time cost for newly
+					hashed passwords (default 5)
+				</li>
+				<li>
+					<code>ARGON2ID_MEMORY_COST</code> - set the Argon2id memory cost for
+					newly hashed passwords (default 262144)
+				</li>
+				<li>
+					<code>ARGON2ID_PARALLELISM</code> - set the Argon2id parallelism for
+					newly hashed passwords (default 4)
+				</li>
+			</ul>
+
+			<h3>Command line flags</h3>
+
+			<ul>
+				<li>
+					<code>--no-precache</code> - disable automatic precaching of GTFS
+					Schedule data on startup
+				</li>
+				<li>
+					<code>--no-refetch</code> - disable automatic refetching of GTFS
+					Schedule data on expiry
+				</li>
+				<li>
+					<code>--no-insert-sample-data</code> - disable automatic insertion of
+					sample configuration data into newly created databases
+				</li>
+				<li>
+					<code>--no-print-generated-admin-password</code> - disable printing of
+					the randomly generated admin password when inserting sample
+					configuration data without <code>DEFAULT_ADMIN_PASSWORD</code> being
+					set
+				</li>
+			</ul>
+		</main>
+	</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>Website - transit-map Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				Website
+			</h1>
+
+			<h2>Main Menu</h2>
+
+			<p>
+				The main menu shows all transit systems and some basic information about
+				them. This corresponds to the <code>/</code> endpoint of the Data API.
+			</p>
+
+			<h2>Log In</h2>
+
+			<p>
+				The <code>/login</code> page (accessed with the "Log In" button) allows
+				the user to log into a user account. This corresponds to the
+				<code>/login</code> endpoint of the Auth API.
+			</p>
+
+			<h2>System Configuration</h2>
+
+			<p>
+				After clicking on one of the pen icons, the configuration for the given
+				transit system is shown. If the user is logged in and authorized to edit
+				this configuration, this page will allow that, otherwise the
+				configuration can only be viewed. This corresponds to the
+				<code>/:system/config</code> endpoint of the Config API.
+			</p>
+
+			<p>
+				When logged in, after clicking on the plus icon, the configuration
+				editing page is shown, but here it allows adding a new transit system's
+				configuration. This corresponds to the
+				<code>/new</code> endpoint of the Config API.
+			</p>
+
+			<p>
+				The configuration page is a form, with a text input for the system's
+				name, a map which functions as a position input for the system's initial
+				map location, and inputs for GTFS Schedule sources and their associated
+				GTFS Realtime sources.
+			</p>
+
+			<h2>System Overview</h2>
+
+			<p>
+				After clicking on one of the transit systems' names, a system overview
+				page with a map is shown.
+			</p>
+
+			<p>
+				The map's sidebar contains all lines, stops, and current alerts for the
+				given transit system.
+			</p>
+
+			<p>The map itself shows all stops and all known vehicle positions.</p>
+
+			<p>
+				This corresponds to the <code>/:system/stops</code>,
+				<code>/:system/lines</code>, <code>/:system/alerts</code>, and
+				<code>/:system/vehicles</code> endpoints of the Data API.
+			</p>
+
+			<h2>Line</h2>
+
+			<p>
+				After clicking on a transit line in the sidebar, an overview of its
+				stops is shown, and its route (if known) is shown on the map.
+			</p>
+
+			<p>
+				This corresponds to the <code>/:system/line/:id</code> endpoint of the
+				Data API.
+			</p>
+
+			<h2>Stop</h2>
+
+			<p>
+				After clicking on a transit stop on the map or the sidebar, the stop's
+				icon on the map is highlighted and its arrivals and schedule (in
+				separate tabs) are shown. These can be filtered by line name.
+			</p>
+
+			<p>
+				This corresponds to the <code>/:system/stop/:id</code> endpoint of the
+				Data API.
+			</p>
+		</main>
+	</body>
+</html>

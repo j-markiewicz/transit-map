@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<link rel="shortcut icon" href="icon.svg" type="image/svg+xml" />
+		<title>Database - transit-map Documentation</title>
+		<link rel="stylesheet" href="style.css" />
+	</head>
+	<body>
+		<main>
+			<h1>
+				<img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+				/>
+				Database
+			</h1>
+
+			<h2>Configuration</h2>
+
+			<p>
+				The <code>transit-map</code> server supports configuring the database
+				with a URL. Currently, the following URL schema are supported:
+			</p>
+
+			<ul>
+				<li>
+					<code>sqlite:</code> - use an SQLite3 database with the filename from
+					the URL's path (e.g. <code>sqlite:./transit-map.sqlite</code>)
+				</li>
+			</ul>
+
+			<h2>Database contents</h2>
+
+			<p>
+				The <code>transit-map</code> server uses the database to store
+				configuration data as well as authentication data.
+			</p>
+
+			<p>
+				Configuration data (in SQL databases) is stored in three tables:
+				<code>systems</code> for transit system configuration,
+				<code>gtfs_sources</code> for GTFS Schedule data sources, and
+				<code>rt_sources</code> for GTFS Realtime data sources.
+			</p>
+
+			<p>
+				Authentication data (in SQL databases) is stored in two tables:
+				<code>users</code> for information about users and their login methods
+				and <code>user_tokens</code> for users' long-lived authentication tokens
+				(see <a href="api.html">Auth API</a> documentation).
+			</p>
+
+			<p>
+				If the configured database does not exist, a new database will be
+				created and (unless disabled) filled with sample data (see
+				<a href="hosting.html">server hosting</a> documentation for details).
+			</p>
+
+			<h2>SQLite schema</h2>
+
+			<p>The database schema for SQLite is shown below:</p>
+
+			<pre>
+CREATE TABLE IF NOT EXISTS users (
+	email TEXT NOT NULL PRIMARY KEY,
+	provider TEXT,
+	authenticator TEXT NOT NULL,
+	totp_secret TEXT,
+	is_admin BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS systems (
+	name TEXT NOT NULL PRIMARY KEY,
+	owner TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE,
+	lat1 DOUBLE PRECISION NOT NULL,
+	lon1 DOUBLE PRECISION NOT NULL,
+	lat2 DOUBLE PRECISION NOT NULL,
+	lon2 DOUBLE PRECISION NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gtfs_sources (
+	system TEXT NOT NULL REFERENCES systems(name) ON DELETE CASCADE,
+	url TEXT NOT NULL,
+	id TEXT NOT NULL,
+	max_age TEXT NOT NULL,
+	PRIMARY KEY (system, url)
+);
+
+CREATE TABLE IF NOT EXISTS rt_sources (
+	system TEXT NOT NULL REFERENCES systems(name) ON DELETE CASCADE,
+	url TEXT NOT NULL,
+	id TEXT NOT NULL,
+	max_age TEXT NOT NULL,
+	PRIMARY KEY (system, url)
+);
+
+CREATE TABLE IF NOT EXISTS user_tokens (
+	token TEXT NOT NULL PRIMARY KEY,
+	user TEXT NOT NULL REFERENCES users(email) ON DELETE CASCADE ON UPDATE CASCADE,
+	expires TIMESTAMP WITH TIME ZONE NOT NULL
+);
+</pre
+			>
+		</main>
+	</body>
+</html>

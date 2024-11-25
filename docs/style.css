@@ -141,6 +141,14 @@ th {
 	vertical-align: text-bottom;
 }
 
+.big-img {
+	width: 100%;
+}
+
+.footnote {
+	font-size: 0.8rem;
+}
+
 #try-api {
 	display: grid;
 	gap: 0.2rem 1rem;
