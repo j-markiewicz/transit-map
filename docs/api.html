@@ -8,16 +8,40 @@
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<main>
+		<header class="header">
 			<h1>
-				<img
-					class="inline-img"
-					src="icon.svg"
-					alt="transit-map documentation logo"
-				/>
-				<code>transit-map</code> API Documentation
+				<a href="index.html" class="header-icon-link"
+					><img
+						class="inline-img"
+						src="icon.svg"
+						alt="transit-map documentation logo"
+				/></a>
+				API Documentation
 			</h1>
 
+			<ul class="header-nav">
+				<li class="header-nav-item current"><a href="api.html">API</a></li>
+				<li class="header-nav-item medium"><a href="types.html">Types</a></li>
+				<li class="header-nav-item medium">
+					<a href="website.html">Website</a>
+				</li>
+				<li class="header-nav-item"><a href="hosting.html">Hosting</a></li>
+				<li class="header-nav-item big"><a href="server.html">Server</a></li>
+				<li class="header-nav-item big"><a href="db.html">Database</a></li>
+				<li class="header-nav-item"><a href="gtfs.html">GTFS</a></li>
+			</ul>
+		</header>
+
+		<aside class="nav">
+			<h2>Content</h2>
+			<a href="#data-api">Data API endpoints</a>
+			<a href="#config-api">Config API endpoints</a>
+			<a href="#auth-api">Auth API endpoints</a>
+			<a href="#auth-tokens">Authentication tokens</a>
+			<a href="#try-it">Try it out</a>
+		</aside>
+
+		<main>
 			<p>
 				The <code>transit-map</code> API is made up of two parts - the Data API
 				for transit data and the Config API for configuring data sources for the
@@ -31,7 +55,7 @@
 				using those APIs from a website. The Auth API is described below.
 			</p>
 
-			<h2>Data API endpoints</h2>
+			<h2 id="data-api">Data API endpoints</h2>
 
 			<p>
 				The following table describes API endpoints which make transit data
@@ -211,7 +235,7 @@
 				information.
 			</p>
 
-			<h2>Config API endpoints</h2>
+			<h2 id="config-api">Config API endpoints</h2>
 
 			<p>
 				The following table describes API endpoints which make
@@ -303,7 +327,7 @@
 				</table>
 			</div>
 
-			<h2>Auth API endpoints</h2>
+			<h2 id="auth-api">Auth API endpoints</h2>
 
 			<p>
 				The following table describes API endpoints for website-based
@@ -385,7 +409,7 @@
 				</table>
 			</div>
 
-			<h2>Authentication tokens</h2>
+			<h2 id="auth-tokens">Authentication tokens</h2>
 
 			<p>
 				<code>transit-map</code> has two different kinds of tokens: API tokens
@@ -406,7 +430,7 @@
 				<code>/gen_token</code> endpoint of the Auth API.
 			</p>
 
-			<h2>Try it out</h2>
+			<h2 id="try-it">Try it out</h2>
 
 			<form id="try-api">
 				<label id="try-api-url-label" for="try-api-url">Path: </label>
@@ -419,6 +443,25 @@
 				<output id="try-api-out-wrapper"><pre id="try-api-out"></pre></output>
 			</form>
 		</main>
+
+		<footer class="footer">
+			<a href="https://j-markiewicz.github.io/transit-map/">Website</a>
+			<a href="https://github.com/j-markiewicz/transit-map">Source Code</a>
+			<a href="index.html" class="footer-logo"
+				><img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+			/></a>
+			<a
+				href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+				>Privacy Policy</a
+			>
+			<a
+				href="mailto:j.markiewicz@student.uj.edu.pl?subject=%5Btransit-map%5D%20SUBJECT"
+				>Contact</a
+			>
+		</footer>
 
 		<script>
 			const API_URL_BASE = "https://transit-map.janm.dev/api/";

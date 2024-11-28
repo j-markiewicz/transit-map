@@ -7,16 +7,43 @@
 		<title>transit-map Documentation</title>
 		<link rel="stylesheet" href="style.css" />
 	</head>
-	<body>
-		<main>
+	<body class="no-nav">
+		<header class="header">
 			<h1>
-				<img
-					class="inline-img"
-					src="icon.svg"
-					alt="transit-map documentation logo"
-				/>
+				<a href="index.html" class="header-icon-link"
+					><img
+						class="inline-img"
+						src="icon.svg"
+						alt="transit-map documentation logo"
+				/></a>
 				<code>transit-map</code> Documentation
 			</h1>
+
+			<ul class="header-nav">
+				<li class="header-nav-item"><a href="api.html">API</a></li>
+				<li class="header-nav-item medium"><a href="types.html">Types</a></li>
+				<li class="header-nav-item medium">
+					<a href="website.html">Website</a>
+				</li>
+				<li class="header-nav-item"><a href="hosting.html">Hosting</a></li>
+				<li class="header-nav-item big"><a href="server.html">Server</a></li>
+				<li class="header-nav-item big"><a href="db.html">Database</a></li>
+				<li class="header-nav-item"><a href="gtfs.html">GTFS</a></li>
+			</ul>
+		</header>
+
+		<main>
+			<p>
+				This site documents <code>transit-map</code>, a webapp for visualizing
+				transit data from GTFS and its HTTP API. The source code for
+				<code>transit-map</code> (and this website) can be found
+				<a href="https://github.com/j-markiewicz/transit-map">on GitHub</a>. An
+				instance of the <code>transit-map</code> website is currently available
+				at
+				<a href="https://j-markiewicz.github.io/transit-map/"
+					>j-markiewicz.github.io/transit-map</a
+				>.
+			</p>
 
 			<h2>API</h2>
 
@@ -70,5 +97,24 @@
 				<a href="gtfs.html">Here's some information</a> about GTFS.
 			</p>
 		</main>
+
+		<footer class="footer">
+			<a href="https://j-markiewicz.github.io/transit-map/">Website</a>
+			<a href="https://github.com/j-markiewicz/transit-map">Source Code</a>
+			<a href="index.html" class="footer-logo"
+				><img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+			/></a>
+			<a
+				href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+				>Privacy Policy</a
+			>
+			<a
+				href="mailto:j.markiewicz@student.uj.edu.pl?subject=%5Btransit-map%5D%20SUBJECT"
+				>Contact</a
+			>
+		</footer>
 	</body>
 </html>

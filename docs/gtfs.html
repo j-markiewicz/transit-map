@@ -8,16 +8,44 @@
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<main>
+		<header class="header">
 			<h1>
-				<img
-					class="inline-img"
-					src="icon.svg"
-					alt="transit-map documentation logo"
-				/>
-				GTFS
+				<a href="index.html" class="header-icon-link"
+					><img
+						class="inline-img"
+						src="icon.svg"
+						alt="transit-map documentation logo"
+				/></a>
+				GTFS Overview
 			</h1>
 
+			<ul class="header-nav">
+				<li class="header-nav-item"><a href="api.html">API</a></li>
+				<li class="header-nav-item medium"><a href="types.html">Types</a></li>
+				<li class="header-nav-item medium">
+					<a href="website.html">Website</a>
+				</li>
+				<li class="header-nav-item"><a href="hosting.html">Hosting</a></li>
+				<li class="header-nav-item big"><a href="server.html">Server</a></li>
+				<li class="header-nav-item big"><a href="db.html">Database</a></li>
+				<li class="header-nav-item current"><a href="gtfs.html">GTFS</a></li>
+			</ul>
+		</header>
+
+		<aside class="nav">
+			<h2>Content</h2>
+			<a href="#schedule">GTFS Schedule</a>
+			<a href="#schedule-structure" class="subnav">Structure</a>
+			<a href="#schedule-mandatory-tables" class="subnav">Mandatory tables</a>
+			<a href="#schedule-optional-tables" class="subnav">Optional tables</a>
+			<a href="#realtime">GTFS Realtime</a>
+			<a href="#realtime-standard" class="subnav">Standard</a>
+			<a href="#realtime-trip-updates" class="subnav">Trip updates</a>
+			<a href="#realtime-vehicle-positions" class="subnav">Vehicle positions</a>
+			<a href="#realtime-alerts" class="subnav">Alerts</a>
+		</aside>
+
+		<main>
 			<h2 id="schedule">GTFS Schedule</h2>
 			<p class="footnote">
 				Text &copy;
@@ -37,7 +65,7 @@
 				services can be shared.
 			</p>
 
-			<h3>Structure</h3>
+			<h3 id="schedule-structure">Structure</h3>
 
 			<p>
 				A GTFS feed is a collection of at least six, and up to 13 CSV files
@@ -60,7 +88,7 @@
 				file called 'agency.txt' would be included in a valid GTFS feed.
 			</p>
 
-			<h3>Mandatory tables</h3>
+			<h3 id="schedule-mandatory-tables">Mandatory tables</h3>
 
 			<h4>agency</h4>
 			<p>
@@ -155,7 +183,7 @@
 				<li>end_date</li>
 			</ul>
 
-			<h3>Optional tables</h3>
+			<h3 id="schedule-optional-tables">Optional tables</h3>
 
 			<h4>calendar_dates</h4>
 			<p>
@@ -207,7 +235,7 @@
 				translation column is the output.
 			</p>
 
-			<h2 id="schedule">GTFS Realtime</h2>
+			<h2 id="realtime">GTFS Realtime</h2>
 			<p class="footnote">
 				Text &copy;
 				<a href="https://en.wikipedia.org/wiki/GTFS_Realtime"
@@ -232,7 +260,7 @@
 				positional data and timetables.
 			</p>
 
-			<h3>Standard</h3>
+			<h3 id="realtime-standard">Standard</h3>
 			<p>
 				The GTFS Realtime specification is defined by a .proto file hosted by
 				Google. Data is serialized into raw bytes by the server and then
@@ -259,7 +287,7 @@
 				in to allow for deletion of items from previous iterations.
 			</p>
 
-			<h3>Trip updates</h3>
+			<h3 id="realtime-trip-updates">Trip updates</h3>
 			<p>
 				In the GTFS Specification, a trip refers to an operator driving a
 				fixed-route vehicle from the start of the route to the end. A new trip
@@ -279,7 +307,7 @@
 				agency provides.
 			</p>
 
-			<h3>Vehicle positions</h3>
+			<h3 id="realtime-vehicle-positions">Vehicle positions</h3>
 			<p>
 				Vehicle Positions are sometimes shown on mapping applications to aid
 				users in tracking the location of buses. This feed contains an array of
@@ -293,7 +321,7 @@
 				the vehicle.
 			</p>
 
-			<h3>Alerts</h3>
+			<h3 id="realtime-alerts">Alerts</h3>
 			<p>
 				Alerts can be shown to mapping application users to alert them of
 				detours, cancellations, or other service changes. This feed contains an
@@ -307,5 +335,24 @@
 				localised into several languages.
 			</p>
 		</main>
+
+		<footer class="footer">
+			<a href="https://j-markiewicz.github.io/transit-map/">Website</a>
+			<a href="https://github.com/j-markiewicz/transit-map">Source Code</a>
+			<a href="index.html" class="footer-logo"
+				><img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+			/></a>
+			<a
+				href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+				>Privacy Policy</a
+			>
+			<a
+				href="mailto:j.markiewicz@student.uj.edu.pl?subject=%5Btransit-map%5D%20SUBJECT"
+				>Contact</a
+			>
+		</footer>
 	</body>
 </html>

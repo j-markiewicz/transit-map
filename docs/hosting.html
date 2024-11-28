@@ -8,17 +8,42 @@
 		<link rel="stylesheet" href="style.css" />
 	</head>
 	<body>
-		<main>
+		<header class="header">
 			<h1>
-				<img
-					class="inline-img"
-					src="icon.svg"
-					alt="transit-map documentation logo"
-				/>
-				Server Hosting
+				<a href="index.html" class="header-icon-link"
+					><img
+						class="inline-img"
+						src="icon.svg"
+						alt="transit-map documentation logo"
+				/></a>
+				Hosting <code>transit-map</code>
 			</h1>
 
-			<h2>Running the server</h2>
+			<ul class="header-nav">
+				<li class="header-nav-item"><a href="api.html">API</a></li>
+				<li class="header-nav-item medium"><a href="types.html">Types</a></li>
+				<li class="header-nav-item medium">
+					<a href="website.html">Website</a>
+				</li>
+				<li class="header-nav-item current">
+					<a href="hosting.html">Hosting</a>
+				</li>
+				<li class="header-nav-item big"><a href="server.html">Server</a></li>
+				<li class="header-nav-item big"><a href="db.html">Database</a></li>
+				<li class="header-nav-item"><a href="gtfs.html">GTFS</a></li>
+			</ul>
+		</header>
+
+		<aside class="nav">
+			<h2>Content</h2>
+			<a href="#running-server">Running the server</a>
+			<a href="#env-and-cli">Environment variables and command line options</a>
+			<a href="#env-vars" class="subnav">Environment variables</a>
+			<a href="#cli-flags" class="subnav">Command line flags</a>
+		</aside>
+
+		<main>
+			<h2 id="running-server">Running the server</h2>
 
 			<p>
 				The <code>transit-map</code> server requires a recent Node.js version
@@ -37,14 +62,14 @@
 				email address values in the file).
 			</p>
 
-			<h2>Environment variables and command line options</h2>
+			<h2 id="env-and-cli">Environment variables and command line options</h2>
 
 			<p>
 				The server accepts some environment variables and command line arguments
 				for basic configuration, though none are required to be set.
 			</p>
 
-			<h3>Environment variables</h3>
+			<h3 id="env-vars">Environment variables</h3>
 
 			<ul>
 				<li><code>PORT</code> - set the server's HTTP port (default 8000)</li>
@@ -72,7 +97,7 @@
 				</li>
 			</ul>
 
-			<h3>Command line flags</h3>
+			<h3 id="cli-flags">Command line flags</h3>
 
 			<ul>
 				<li>
@@ -95,5 +120,24 @@
 				</li>
 			</ul>
 		</main>
+
+		<footer class="footer">
+			<a href="https://j-markiewicz.github.io/transit-map/">Website</a>
+			<a href="https://github.com/j-markiewicz/transit-map">Source Code</a>
+			<a href="index.html" class="footer-logo"
+				><img
+					class="inline-img"
+					src="icon.svg"
+					alt="transit-map documentation logo"
+			/></a>
+			<a
+				href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement"
+				>Privacy Policy</a
+			>
+			<a
+				href="mailto:j.markiewicz@student.uj.edu.pl?subject=%5Btransit-map%5D%20SUBJECT"
+				>Contact</a
+			>
+		</footer>
 	</body>
 </html>
