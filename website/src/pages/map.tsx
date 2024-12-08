@@ -18,7 +18,7 @@ import {
 	VehicleType,
 	get_shape,
 } from "../api.ts";
-import { get_stop_icon, get_vehicle_icon } from "../util.ts";
+import { cmp, get_stop_icon, get_vehicle_icon } from "../util.ts";
 import layers from "../layers.json";
 import style from "./map.module.css";
 import "leaflet/dist/leaflet.css";
@@ -197,8 +197,7 @@ export default class Map extends Component<
 						title: `${stop.name} (${[
 							...new Set(Object.values(stop.lines).map((l) => l!.name)),
 						]
-							.sort()
-							.sort((a, b) => a.length - b.length)
+							.sort((a, b) => cmp([a], [b]))
 							.join(", ")})`,
 						draggable: false,
 						icon: L.icon({
