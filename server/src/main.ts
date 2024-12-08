@@ -95,7 +95,7 @@ async function main() {
 				expires: new Date(expires.epochMilliseconds),
 				partitioned: true,
 				path: "/auth",
-				sameSite: "strict",
+				sameSite: "none",
 			});
 
 			res.status(204).end();
