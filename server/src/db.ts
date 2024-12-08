@@ -620,6 +620,10 @@ async function add_sample_data(db: DB) {
 				id: "a",
 				max_age: "1d",
 			},
+			"https://gtfs.ztp.krakow.pl/GTFS_KRK_M.zip": {
+				id: "m",
+				max_age: "1d",
+			},
 		},
 		realtime: {
 			"https://gtfs.ztp.krakow.pl/VehiclePositions_T.pb": {
@@ -630,6 +634,10 @@ async function add_sample_data(db: DB) {
 				id: "a",
 				max_age: "20s",
 			},
+			"https://gtfs.ztp.krakow.pl/VehiclePositions_M.pb": {
+				id: "m",
+				max_age: "20s",
+			},
 			"https://gtfs.ztp.krakow.pl/TripUpdates_T.pb": {
 				id: "t",
 				max_age: "20s",
@@ -638,12 +646,20 @@ async function add_sample_data(db: DB) {
 				id: "a",
 				max_age: "20s",
 			},
+			"https://gtfs.ztp.krakow.pl/TripUpdates_M.pb": {
+				id: "m",
+				max_age: "20s",
+			},
 			"https://gtfs.ztp.krakow.pl/ServiceAlerts_T.pb": {
 				id: "t",
 				max_age: "5m",
 			},
 			"https://gtfs.ztp.krakow.pl/ServiceAlerts_A.pb": {
 				id: "a",
+				max_age: "5m",
+			},
+			"https://gtfs.ztp.krakow.pl/ServiceAlerts_M.pb": {
+				id: "m",
 				max_age: "5m",
 			},
 		},
