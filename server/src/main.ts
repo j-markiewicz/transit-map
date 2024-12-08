@@ -31,7 +31,7 @@ async function main() {
 	app.use(
 		cors({
 			origin: true,
-			methods: ["GET"],
+			methods: ["GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"],
 			credentials: true,
 		})
 	);
@@ -40,15 +40,6 @@ async function main() {
 		console.info(`${req.method} ${req.path}`);
 		next();
 	});
-
-	app.options(
-		"*",
-		cors({
-			origin: true,
-			methods: ["GET"],
-			credentials: true,
-		})
-	);
 
 	app.post("/auth/login", express.json(), async (req, res) => {
 		try {
