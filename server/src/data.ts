@@ -556,8 +556,8 @@ export default class Data {
 					(stop_types[stop.id]?.get(b) ?? 0) -
 					(stop_types[stop.id]?.get(a) ?? 0)
 			),
-			lat: stop.lat ?? Math.random(),
-			lon: stop.lon ?? Math.random(),
+			lat: isNaN(stop.lat) ? Math.random() : stop.lat,
+			lon: isNaN(stop.lon) ? Math.random() : stop.lon,
 			lines: stop_lines[stop.id] ?? {},
 		}));
 	}
