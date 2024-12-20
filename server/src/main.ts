@@ -33,7 +33,11 @@ async function main() {
 		console.info(`Creating data dump in '${fileURLToPath(location)}'`);
 
 		const all_info = await data.get_all_info().catch(() => undefined);
-		await fs.writeFile(path(`index.json`), JSON.stringify(all_info), "utf-8");
+		await fs.writeFile(
+			path(`index.json`),
+			JSON.stringify(all_info ?? null),
+			"utf-8"
+		);
 
 		for (const system of all_info ?? []) {
 			const promises = [];
@@ -43,7 +47,7 @@ async function main() {
 				fs.writeFile(
 					path(`${system.name}/index.json`),
 					JSON.stringify(
-						await data.get_info(system.name)?.catch(() => undefined)
+						(await data.get_info(system.name)?.catch(() => undefined)) ?? null
 					),
 					"utf-8"
 				)
@@ -69,7 +73,7 @@ async function main() {
 				fs.writeFile(
 					path(`${system.name}/alerts/index.json`),
 					JSON.stringify(
-						await data.get_alerts(system.name)?.catch(() => undefined)
+						(await data.get_alerts(system.name)?.catch(() => undefined)) ?? null
 					),
 					"utf-8"
 				)
@@ -80,7 +84,8 @@ async function main() {
 				fs.writeFile(
 					path(`${system.name}/vehicles/index.json`),
 					JSON.stringify(
-						await data.get_vehicles(system.name)?.catch(() => undefined)
+						(await data.get_vehicles(system.name)?.catch(() => undefined)) ??
+							null
 					),
 					"utf-8"
 				)
@@ -91,7 +96,7 @@ async function main() {
 			promises.push(
 				fs.writeFile(
 					path(`${system.name}/stops/index.json`),
-					JSON.stringify(stops),
+					JSON.stringify(stops ?? null),
 					"utf-8"
 				)
 			);
@@ -101,7 +106,7 @@ async function main() {
 			promises.push(
 				fs.writeFile(
 					path(`${system.name}/lines/index.json`),
-					JSON.stringify(lines),
+					JSON.stringify(lines ?? null),
 					"utf-8"
 				)
 			);
@@ -113,9 +118,9 @@ async function main() {
 					fs.writeFile(
 						path(`${system.name}/stop/${stop.id}/index.json`),
 						JSON.stringify(
-							await data
+							(await data
 								.get_stop_schedule(system.name, stop.id)
-								?.catch(() => undefined)
+								?.catch(() => undefined)) ?? null
 						),
 						"utf-8"
 					)
@@ -133,7 +138,9 @@ async function main() {
 					fs.writeFile(
 						path(`${system.name}/line/${line.id}/index.json`),
 						JSON.stringify(
-							await data.get_line(system.name, line.id)?.catch(() => undefined)
+							(await data
+								.get_line(system.name, line.id)
+								?.catch(() => undefined)) ?? null
 						),
 						"utf-8"
 					)
@@ -147,7 +154,9 @@ async function main() {
 					fs.writeFile(
 						path(`${system.name}/shape/${shape}/index.json`),
 						JSON.stringify(
-							await data.get_shape(system.name, shape)?.catch(() => undefined)
+							(await data
+								.get_shape(system.name, shape)
+								?.catch(() => undefined)) ?? null
 						),
 						"utf-8"
 					)
