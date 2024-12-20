@@ -41,7 +41,7 @@ async function main() {
 
 		for (const system of all_info ?? []) {
 			const promises = [];
-			await fs.mkdir(path(`${system.name}`));
+			await fs.mkdir(path(`${system.name}`)).catch(console.warn);
 
 			promises.push(
 				fs.writeFile(
@@ -53,7 +53,7 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/config`));
+			await fs.mkdir(path(`${system.name}/config`)).catch(console.warn);
 			const config = data.get_config(system.name);
 			promises.push(
 				fs.writeFile(
@@ -68,7 +68,7 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/alerts`));
+			await fs.mkdir(path(`${system.name}/alerts`)).catch(console.warn);
 			promises.push(
 				fs.writeFile(
 					path(`${system.name}/alerts/index.json`),
@@ -79,7 +79,7 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/vehicles`));
+			await fs.mkdir(path(`${system.name}/vehicles`)).catch(console.warn);
 			promises.push(
 				fs.writeFile(
 					path(`${system.name}/vehicles/index.json`),
@@ -91,7 +91,7 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/stops`));
+			await fs.mkdir(path(`${system.name}/stops`)).catch(console.warn);
 			const stops = await data.get_stops(system.name)?.catch(() => undefined);
 			promises.push(
 				fs.writeFile(
@@ -101,7 +101,7 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/lines`));
+			await fs.mkdir(path(`${system.name}/lines`)).catch(console.warn);
 			const lines = await data.get_lines(system.name)?.catch(() => undefined);
 			promises.push(
 				fs.writeFile(
@@ -111,9 +111,11 @@ async function main() {
 				)
 			);
 
-			await fs.mkdir(path(`${system.name}/stop`));
+			await fs.mkdir(path(`${system.name}/stop`)).catch(console.warn);
 			for (const stop of stops ?? []) {
-				await fs.mkdir(path(`${system.name}/stop/${stop.id}`));
+				await fs
+					.mkdir(path(`${system.name}/stop/${stop.id}`))
+					.catch(console.warn);
 				promises.push(
 					fs.writeFile(
 						path(`${system.name}/stop/${stop.id}/index.json`),
@@ -129,11 +131,13 @@ async function main() {
 
 			const shapes = new Set<string>();
 
-			await fs.mkdir(path(`${system.name}/line`));
+			await fs.mkdir(path(`${system.name}/line`)).catch(console.warn);
 			for (const line of lines ?? []) {
 				line.shape.forEach((s) => shapes.add(s));
 
-				await fs.mkdir(path(`${system.name}/line/${line.id}`));
+				await fs
+					.mkdir(path(`${system.name}/line/${line.id}`))
+					.catch(console.warn);
 				promises.push(
 					fs.writeFile(
 						path(`${system.name}/line/${line.id}/index.json`),
@@ -147,9 +151,11 @@ async function main() {
 				);
 			}
 
-			await fs.mkdir(path(`${system.name}/shape`));
+			await fs.mkdir(path(`${system.name}/shape`)).catch(console.warn);
 			for (const shape of shapes.values()) {
-				await fs.mkdir(path(`${system.name}/shape/${shape}`));
+				await fs
+					.mkdir(path(`${system.name}/shape/${shape}`))
+					.catch(console.warn);
 				promises.push(
 					fs.writeFile(
 						path(`${system.name}/shape/${shape}/index.json`),
