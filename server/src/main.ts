@@ -169,8 +169,27 @@ async function main() {
 				);
 			}
 
+			const info =
+				(await data.get_info(system.name)?.catch(() => undefined)) ?? null;
+
+			if (info !== null) {
+				promises.push(
+					fs.writeFile(
+						path(`${system.name}/index.json`),
+						JSON.stringify(info),
+						"utf-8"
+					)
+				);
+			}
+
 			await Promise.all(promises);
 		}
+
+		await fs.writeFile(
+			path(`index.json`),
+			JSON.stringify((await data.get_all_info().catch(() => all_info)) ?? null),
+			"utf-8"
+		);
 
 		process.once("exit", () =>
 			console.info(`Saved full data dump in '${fileURLToPath(location)}'`)
