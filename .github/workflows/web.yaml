@@ -30,8 +30,9 @@ jobs:
           cp -r ../docs ./dist/docs
           cd ..
         env:
-          VITE_MAP_API_BASE: https://transit-map.janm.dev/api/
-          VITE_MAP_AUTH_BASE: https://transit-map.janm.dev/auth/
+          VITE_MAP_API_BASE: https://j-markiewicz.github.io/transit-map/demo-api/
+          VITE_MAP_AUTH_BASE: https://j-markiewicz.github.io/transit-map/demo-auth/
+          VITE_MAP_DEMO: 1
       - run: |
           cd server
           yarn
