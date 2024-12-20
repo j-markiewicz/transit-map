@@ -1,9 +1,11 @@
+import { fileURLToPath, pathToFileURL } from "url";
 import express from "express";
 import { is } from "superstruct";
 import { Temporal } from "temporal-polyfill";
 import cookie_parser from "cookie-parser";
 import compression from "compression";
 import jwt from "jsonwebtoken";
+import fs from "fs/promises";
 import cors from "cors";
 import "dotenv/config";
 
@@ -16,15 +18,155 @@ main();
 
 async function main() {
 	console.info("transit-map server starting");
-	const api_token_secret = await random();
-
-	const port = process.env.PORT ?? 8000;
-	const app = express();
 
 	const db = await DB.new(
 		new URL(process.env.DB ?? "sqlite:./transit-map.sqlite")
 	);
 	const data = await Data.new(db);
+
+	if (process.argv[2] === "dump") {
+		const location = new URL("./dump/", pathToFileURL(process.cwd()));
+		await fs.mkdir(location);
+
+		const path = (file: string) => new URL(file, location);
+
+		console.info(`Creating data dump in '${fileURLToPath(location)}'`);
+
+		const all_info = await data.get_all_info().catch(() => undefined);
+		await fs.writeFile(path(`index.json`), JSON.stringify(all_info), "utf-8");
+
+		for (const system of all_info ?? []) {
+			const promises = [];
+			await fs.mkdir(path(`${system.name}`));
+
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/index.json`),
+					JSON.stringify(
+						await data.get_info(system.name)?.catch(() => undefined)
+					),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/config`));
+			const config = data.get_config(system.name);
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/config/index.json`),
+					JSON.stringify({
+						location: config?.location,
+						gtfs: config?.gtfs,
+						realtime: config?.realtime,
+						can_edit: false,
+					}),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/alerts`));
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/alerts/index.json`),
+					JSON.stringify(
+						await data.get_alerts(system.name)?.catch(() => undefined)
+					),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/vehicles`));
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/vehicles/index.json`),
+					JSON.stringify(
+						await data.get_vehicles(system.name)?.catch(() => undefined)
+					),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/stops`));
+			const stops = await data.get_stops(system.name)?.catch(() => undefined);
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/stops/index.json`),
+					JSON.stringify(stops),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/lines`));
+			const lines = await data.get_lines(system.name)?.catch(() => undefined);
+			promises.push(
+				fs.writeFile(
+					path(`${system.name}/lines/index.json`),
+					JSON.stringify(lines),
+					"utf-8"
+				)
+			);
+
+			await fs.mkdir(path(`${system.name}/stop`));
+			for (const stop of stops ?? []) {
+				await fs.mkdir(path(`${system.name}/stop/${stop.id}`));
+				promises.push(
+					fs.writeFile(
+						path(`${system.name}/stop/${stop.id}/index.json`),
+						JSON.stringify(
+							await data
+								.get_stop_schedule(system.name, stop.id)
+								?.catch(() => undefined)
+						),
+						"utf-8"
+					)
+				);
+			}
+
+			const shapes = new Set<string>();
+
+			await fs.mkdir(path(`${system.name}/line`));
+			for (const line of lines ?? []) {
+				line.shape.forEach((s) => shapes.add(s));
+
+				await fs.mkdir(path(`${system.name}/line/${line.id}`));
+				promises.push(
+					fs.writeFile(
+						path(`${system.name}/line/${line.id}/index.json`),
+						JSON.stringify(
+							await data.get_line(system.name, line.id)?.catch(() => undefined)
+						),
+						"utf-8"
+					)
+				);
+			}
+
+			await fs.mkdir(path(`${system.name}/shape`));
+			for (const shape of shapes.values()) {
+				await fs.mkdir(path(`${system.name}/shape/${shape}`));
+				promises.push(
+					fs.writeFile(
+						path(`${system.name}/shape/${shape}/index.json`),
+						JSON.stringify(
+							await data.get_shape(system.name, shape)?.catch(() => undefined)
+						),
+						"utf-8"
+					)
+				);
+			}
+
+			await Promise.all(promises);
+		}
+
+		process.once("exit", () =>
+			console.info(`Saved full data dump in '${fileURLToPath(location)}'`)
+		);
+		process.exit(0);
+	}
+
+	const api_token_secret = await random();
+
+	const port = process.env.PORT ?? 8000;
+	const app = express();
 
 	app.set("x-powered-by", false);
 	app.use(compression());
