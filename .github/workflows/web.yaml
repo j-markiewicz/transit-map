@@ -28,9 +28,16 @@ jobs:
           yarn
           yarn build --base=/transit-map/
           cp -r ../docs ./dist/docs
+          cd ..
         env:
           VITE_MAP_API_BASE: https://transit-map.janm.dev/api/
           VITE_MAP_AUTH_BASE: https://transit-map.janm.dev/auth/
+      - run: |
+          cd server
+          yarn
+          yarn dev dump
+          cp -r ../dump ../website/dist/demo-api
+          cd ..
       - uses: actions/upload-pages-artifact@v3
         with:
           path: "website/dist/"
