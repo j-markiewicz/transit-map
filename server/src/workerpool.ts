@@ -17,8 +17,10 @@ export default class WorkerPool {
 
 	public async run(req: unknown): Promise<unknown> {
 		let worker = this.available.shift();
+		let was_available = true;
 
 		if (worker === undefined) {
+			was_available = false;
 			worker = this.workers.shift()!;
 			this.workers.push(worker);
 		}
@@ -42,7 +44,10 @@ export default class WorkerPool {
 
 			worker.postMessage({ port: port2, req }, [port2 as any]);
 		}).then((res) => {
-			this.available.push(worker);
+			if (was_available) {
+				this.available.push(worker);
+			}
+
 			return res;
 		});
 	}
