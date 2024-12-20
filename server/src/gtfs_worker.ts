@@ -133,7 +133,7 @@ async function fetch_and_parse_gtfs(
 
 	const timezone: string = (
 		await files["agency.txt"]
-			.pipe(csv.parse({ columns: true }))
+			.pipe(csv.parse({ columns: true, bom: true }))
 			[Symbol.asyncIterator]()
 			.next()
 	).value["agency_timezone"];
@@ -141,7 +141,7 @@ async function fetch_and_parse_gtfs(
 	console.debug(`parsed a timezone from ${source}`);
 
 	for await (const record of files["routes.txt"].pipe(
-		csv.parse({ columns: true })
+		csv.parse({ columns: true, bom: true })
 	)) {
 		routes.push({
 			id: id(record["route_id"]),
@@ -154,7 +154,7 @@ async function fetch_and_parse_gtfs(
 	console.debug(`parsed ${routes.length} routes from ${source}`);
 
 	for await (const record of files["trips.txt"].pipe(
-		csv.parse({ columns: true })
+		csv.parse({ columns: true, bom: true })
 	)) {
 		trips.push({
 			id: id(record["trip_id"]),
@@ -168,7 +168,7 @@ async function fetch_and_parse_gtfs(
 	console.debug(`parsed ${trips.length} trips from ${source}`);
 
 	for await (const record of files["stops.txt"].pipe(
-		csv.parse({ columns: true })
+		csv.parse({ columns: true, bom: true })
 	)) {
 		if (record["location_type"] === "" || record["location_type"] === "0") {
 			stops.push({
@@ -183,7 +183,7 @@ async function fetch_and_parse_gtfs(
 	console.debug(`parsed ${stops.length} stops from ${source}`);
 
 	for await (const record of files["stop_times.txt"].pipe(
-		csv.parse({ columns: true })
+		csv.parse({ columns: true, bom: true })
 	)) {
 		stop_times.push({
 			stop: id(record["stop_id"]),
@@ -199,7 +199,7 @@ async function fetch_and_parse_gtfs(
 	if (files["shapes.txt"] !== null) {
 		shapes = [];
 		for await (const record of files["shapes.txt"].pipe(
-			csv.parse({ columns: true })
+			csv.parse({ columns: true, bom: true })
 		)) {
 			shapes.push({
 				id: id(record["shape_id"]),
@@ -217,7 +217,7 @@ async function fetch_and_parse_gtfs(
 	if (files["calendar.txt"] !== null) {
 		calendar = [];
 		for await (const record of files["calendar.txt"].pipe(
-			csv.parse({ columns: true })
+			csv.parse({ columns: true, bom: true })
 		)) {
 			calendar.push({
 				id: id(record["service_id"]),
@@ -241,7 +241,7 @@ async function fetch_and_parse_gtfs(
 	if (files["calendar_dates.txt"] !== null) {
 		calendar_dates = [];
 		for await (const record of files["calendar_dates.txt"].pipe(
-			csv.parse({ columns: true })
+			csv.parse({ columns: true, bom: true })
 		)) {
 			calendar_dates.push({
 				id: id(record["service_id"]),
