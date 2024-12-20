@@ -34,6 +34,22 @@
 	cursor: pointer;
 }
 
+.login:disabled {
+	cursor: initial;
+	background-color: var(--bg-grey);
+	color: var(--fg-grey);
+}
+
+.banner {
+	font-size: 1rem;
+	font-weight: bold;
+	padding: 1rem;
+	margin: 0;
+	text-align: center;
+	background-color: var(--danger-color);
+	color: var(--bg-color);
+}
+
 .wrapper {
 	display: flex;
 	flex-direction: column;

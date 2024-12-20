@@ -1,4 +1,5 @@
 import { LineString } from "geojson";
+import { IS_DEMO_MODE } from "./util";
 
 const api_url = (path: string) =>
 	new URL(path, import.meta.env.VITE_MAP_API_BASE);
@@ -261,6 +262,10 @@ export async function get_shape(
 }
 
 export async function log_in(credentials: Credentials): Promise<boolean> {
+	if (IS_DEMO_MODE) {
+		return false;
+	}
+
 	return fetch(auth_url("login"), {
 		method: "POST",
 		body: JSON.stringify(credentials),
@@ -314,6 +319,10 @@ async function get_token(): Promise<string | undefined> {
 }
 
 async function gen_token(): Promise<string | undefined> {
+	if (IS_DEMO_MODE) {
+		return undefined;
+	}
+
 	return fetch(auth_url("gen_token"), {
 		method: "POST",
 		credentials: "include",

@@ -30,6 +30,9 @@ import other_vehicle_icon from "./assets/icons/other-vehicle.svg";
 
 import { VehicleType } from "./api";
 
+/** Whether the website is in demo mode, i.e. with fake API responses */
+export const IS_DEMO_MODE = import.meta.env.VITE_MAP_DEMO === "1";
+
 /** Compare two series of strings
  *
  * The comparison of arrays is done lexically.

@@ -5,6 +5,7 @@ import add_icon from "../assets/add.svg";
 import edit_icon from "../assets/edit.svg";
 
 import Loading from "../components/loading.tsx";
+import { IS_DEMO_MODE } from "../util.ts";
 import {
 	BasicSystemInfo,
 	get_all_info,
@@ -35,6 +36,7 @@ export default function Menu() {
 				{authenticated ? (
 					<button
 						class={style.login}
+						disabled={IS_DEMO_MODE}
 						onClick={() =>
 							log_out().then(() =>
 								is_logged_in().then((authed) => setAuthenticated(authed))
@@ -46,6 +48,7 @@ export default function Menu() {
 				) : (
 					<button
 						class={style.login}
+						disabled={IS_DEMO_MODE}
 						onClick={() => navigate("/login")}
 						onMouseEnter={() =>
 							is_logged_in().then((authed) => setAuthenticated(authed))
@@ -55,6 +58,13 @@ export default function Menu() {
 					</button>
 				)}
 			</header>
+
+			{IS_DEMO_MODE ? (
+				<p class={style.banner}>
+					This website is in demo mode - the data displayed here is not updated,
+					configuration is read-only, and authentication is disabled.
+				</p>
+			) : null}
 
 			<div class={style.wrapper}>
 				{info === null ? (
